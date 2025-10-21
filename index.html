@@ -4,61 +4,197 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>医学统计学互动实验导航 | Medical Statistics Lab Portal</title>
+  <meta name="description" content="Interactive teaching labs for medical statistics by Zhenti Cui.">
   <style>
-    body {font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;background:linear-gradient(to right,#eef2f3,#d9e2ec);text-align:center;margin:0;padding:40px;color:#333;}
-    h1 {color:#004578;font-size:28px;margin-bottom:10px;}
-    h2 {color:#666;font-size:18px;font-weight:normal;margin-bottom:40px;}
-    .grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:900px;margin:0 auto;}
-    .card {background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:24px;transition:transform .2s,box-shadow .2s;}
-    .card:hover {transform:translateY(-4px);box-shadow:0 6px 14px rgba(0,0,0,0.15);}
-    .card h3 {color:#004578;margin-bottom:8px;}
-    footer {margin-top:50px;color:#777;font-size:14px;}
+    :root {
+      --bg: #f3f6f9;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --sub: #6b7280;
+      --brand: #0e639c;
+      --brand-ink: #0b4f7a;
+      --shadow: rgba(0,0,0,.1);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; padding: 40px 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Noto Sans", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: linear-gradient(105deg, #eef2f3 0%, #d9e2ec 100%);
+    }
+    header {
+      max-width: 1000px; margin: 0 auto 24px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0 0 8px; font-size: 28px; color: var(--brand);
+    }
+    header p { margin: 0; color: var(--sub); }
+    .grid {
+      max-width: 1000px; margin: 24px auto;
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    a.card {
+      text-decoration: none; color: inherit;
+      background: var(--card);
+      border-radius: 14px;
+      padding: 18px 16px;
+      box-shadow: 0 6px 16px var(--shadow);
+      transition: transform .18s ease, box-shadow .18s ease;
+      display: block; text-align: left;
+      border: 1px solid #e5e7eb;
+      min-height: 108px;
+    }
+    a.card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 10px 22px rgba(0,0,0,.14);
+      border-color: #d1d5db;
+    }
+    .title { font-weight: 700; font-size: 18px; margin: 0 0 6px; color: var(--brand-ink); }
+    .desc { margin: 0; color: var(--sub); font-size: 14px; }
+    .pill {
+      display: inline-block; font-size: 12px; padding: 2px 8px; border-radius: 999px;
+      background: #e0f2fe; color: #075985; margin-left: 8px;
+      vertical-align: middle;
+    }
+    footer { text-align: center; margin: 36px auto 8px; color: var(--sub); font-size: 13px; }
+    .muted { color: var(--sub); }
+    .toolbar {
+      max-width: 1000px; margin: 8px auto 0;
+      display: flex; gap: 8px; align-items: center; justify-content: center; flex-wrap: wrap;
+    }
+    .search {
+      width: 100%; max-width: 420px;
+      display: flex; gap: 8px;
+    }
+    .search input {
+      flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid #d1d5db; outline: none;
+    }
+    .search input:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(147,197,253,.35); }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
+<header>
   <h1>医学统计学互动实验导航</h1>
-  <h2>Medical Statistics Interactive Teaching Labs</h2>
+  <p class="muted">Medical Statistics Interactive Teaching Labs · GitHub Pages</p>
+  <div class="toolbar">
+    <div class="search">
+      <input id="q" type="search" placeholder="搜索模块（如 Chi、t、回归、normal、logistic）..." aria-label="Search labs">
+    </div>
+  </div>
+</header>
 
-  <div class="grid" id="labGrid">正在加载实验列表...</div>
+<main class="grid" id="grid">
+  <div class="muted" id="loading">正在加载实验列表...</div>
+</main>
 
-  <footer>© 2025 Zhentic Cui</footer>
+<footer>
+  © <span id="y"></span> Zhenti Cui · Zhengzhou Sias University · <a href="https://github.com/zhentic/Medicalstatistic" target="_blank" rel="noopener">GitHub</a>
+</footer>
 
-  <script>
-    // 你的 GitHub Pages 仓库路径
-    const repo = "https://zhentic.github.io/Medicalstatistic/";
+<script>
+  // ---- 基础配置 ----
+  const GITHUB_USER = "zhentic";
+  const REPO_NAME   = "Medicalstatistic";
+  const PAGES_ROOT  = `https://${GITHUB_USER}.github.io/${REPO_NAME}/`;
 
-    // 预定义中英文标题映射
-    const mapping = {
-      "chi_square_lab.html": "📊 卡方检验 (Chi-Square Test)",
-      "t_distribution_demo_fixed.html": "📈 t 检验演示 (T-Test)",
-      "normal_distribution.html": "🔔 正态分布 (Normal Distribution)",
-      "Parameter Estimator_Medical Statistics.html": "📐 参数估计 (Parameter Estimation)",
-      "OLS Linear Regression_Interactive Teaching Lab.html": "📉 线性回归 (OLS Regression)",
-      "动态置信区间演示.html": "🎞 动态置信区间 (Dynamic CI Demo)"
-    };
+  // 自定义标题映射（优先级最高）
+  const mapping = {
+    "chi_square_lab.html": "📊 卡方检验 (Chi-Square Test)",
+    "t_distribution_demo_fixed.html": "📈 t 检验演示 (T-Test)",
+    "normal_distribution.html": "🔔 正态分布 (Normal Distribution)",
+    "Parameter Estimator_Medical Statistics.html": "📐 参数估计 (Parameter Estimation)",
+    "OLS Linear Regression_Interactive Teaching Lab.html": "📉 线性回归 (OLS Regression)",
+    "动态置信区间演示.html": "🎞 动态置信区间 (Dynamic CI Demo)"
+  };
 
-    async function loadFiles() {
-      try {
-        // 从 GitHub API 获取文件列表
-        const res = await fetch("https://api.github.com/repos/zhentic/Medicalstatistic/contents");
-        const data = await res.json();
+  // 文件名美化为可读标题
+  function beautifyName(name) {
+    return name
+      .replace(/\.html?$/i, "")        // 去扩展名
+      .replace(/[_-]+/g, " ")           // _ 或 - 转空格
+      .replace(/\s+/g, " ")
+      .trim()
+      .replace(/\b[a-z]/g, c => c.toUpperCase()); // 单词首字母大写
+  }
 
-        const grid = document.getElementById("labGrid");
-        grid.innerHTML = "";
+  // 简单描述生成（可按需扩展）
+  function genDesc(filename) {
+    const key = filename.toLowerCase();
+    if (key.includes("chi") || key.includes("卡方")) return "Pearson / Yates / Fisher 选项与期望频数自动计算";
+    if (key.includes("t_") || key.includes("t-") || key.includes("t ")) return "单样本 / 双样本 / 分布演示";
+    if (key.includes("normal")) return "正态分布形状与参数可调演示";
+    if (key.includes("regression") || key.includes("ols")) return "回归系数、残差与拟合可视化";
+    if (key.includes("parameter") || key.includes("估计")) return "抽样与区间估计的交互式仿真";
+    if (key.includes("置信") || key.includes("ci")) return "置信区间的动态直观展示";
+    if (key.includes("logistic")) return "二分类逻辑回归：似然、系数与预测概率";
+    return "Interactive Web Demo";
+  }
 
-        data.filter(f => f.name.endsWith(".html") && f.name !== "index.html")
-            .forEach(file => {
-              const title = mapping[file.name] || "📘 " + file.name.replace(".html", "");
-              const card = document.createElement("a");
-              card.href = repo + file.name;
-              card.innerHTML = `<div class='card'><h3>${title}</h3></div>`;
-              grid.appendChild(card);
-            });
-      } catch (err) {
-        document.getElementById("labGrid").innerText = "无法加载文件列表，请稍后重试。";
-      }
+  // 渲染卡片
+  function render(list) {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    list.forEach(f => {
+      const title = mapping[f.name] || "📘 " + beautifyName(f.name);
+      const desc  = genDesc(f.name);
+      const a = document.createElement("a");
+      a.className = "card"; a.href = PAGES_ROOT + encodeURIComponent(f.name);
+      a.innerHTML = `<div class="title">${title}</div><p class="desc">${desc}</p>`;
+      a.setAttribute("data-title", title.toLowerCase());
+      grid.appendChild(a);
+    });
+    if (!list.length) {
+      grid.innerHTML = '<div class="muted">未找到任何实验页面。</div>';
     }
-    loadFiles();
-  </script>
+  }
+
+  // 过滤搜索
+  function setupSearch(all) {
+    const q = document.getElementById("q");
+    q.addEventListener("input", () => {
+      const kw = q.value.trim().toLowerCase();
+      const filtered = !kw ? all : all.filter(f => {
+        const t = (mapping[f.name] || beautifyName(f.name)).toLowerCase();
+        return f.name.toLowerCase().includes(kw) || t.includes(kw);
+      });
+      render(filtered);
+    });
+  }
+
+  // 加载仓库文件列表（GitHub API）
+  async function main() {
+    document.getElementById("y").textContent = new Date().getFullYear();
+    const loading = document.getElementById("loading");
+    try {
+      const api = `https://api.github.com/repos/${GITHUB_USER}/${REPO_NAME}/contents`;
+      const res = await fetch(api);
+      if (!res.ok) throw new Error("GitHub API error: " + res.status);
+      const data = await res.json();
+
+      // 仅取根目录 .html，排除 index.html
+      const htmlFiles = data
+        .filter(f => f.type === "file" && /\.html?$/i.test(f.name) && f.name.toLowerCase() !== "index.html")
+        .sort((a, b) => a.name.localeCompare(b.name, "en"));
+
+      render(htmlFiles);
+      setupSearch(htmlFiles);
+    } catch (e) {
+      console.error(e);
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+      const tips = document.createElement("div");
+      tips.className = "muted";
+      tips.innerHTML = `无法通过 GitHub API 加载文件列表。你仍可手动访问：<br>
+        <a href="${PAGES_ROOT}chi_square_lab.html">${PAGES_ROOT}chi_square_lab.html</a>`;
+      grid.appendChild(tips);
+    } finally {
+      if (loading) loading.classList.add("hidden");
+    }
+  }
+  main();
+</script>
 </body>
 </html>
