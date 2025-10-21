@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interactive OLS – Linear Regression Lab</title>
+  <style>
+    :root{
+      --bg: #0b1020;
+      --panel: #111730;
+      --accent: #66d9ef;
+      --muted: #9fb0c7;
+      --text: #e6eefc;
+      --good: #30d158;
+      --bad: #ff3b30;
+      --warn: #ffd60a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 80% -10%, #1a2251 0%, var(--bg) 45%) fixed;
+      color:var(--text);
+    }
+    header{position:sticky; top:0; z-index:10; backdrop-filter: blur(8px); background:rgba(11,16,32,.6); border-bottom:1px solid rgba(255,255,255,.08)}
+    header .wrap{
+      max-width:1200px; margin:auto; padding:14px 18px; display:flex; gap:16px; align-items:center; justify-content:space-between;
+    }
+    h1{margin:0; font-size:20px; letter-spacing:.3px}
+    .container{max-width:1200px; margin:20px auto; padding:0 18px;}
+    .grid{display:grid; grid-template-columns: 1.2fr .9fr; gap:18px}
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius:16px; padding:14px; box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card h2{margin:4px 0 12px; font-size:16px; color:#dce7ff}
+    .controls{display:grid; grid-template-columns: repeat(6, minmax(0,1fr)); gap:10px; align-items:end}
+    .controls .field{display:flex; flex-direction:column; gap:6px}
+    .controls label{font-size:12px; color:var(--muted)}
+    .controls input[type=range]{width:100%}
+    .btn{
+      appearance:none; border:none; cursor:pointer; padding:10px 12px; border-radius:12px; color:#06121e;
+      background: linear-gradient(180deg, #7be7ff, #48c2ff);
+      font-weight:700; box-shadow: 0 8px 20px rgba(72,194,255,.35);
+    }
+    .btn.secondary{background: linear-gradient(180deg, #ffd86b, #ffb400)}
+    .btn.ghost{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.2)}
+    .kpis{display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap:10px; margin-top:10px}
+    .kpi{padding:10px; background:rgba(0,0,0,.3); border-radius:12px; border:1px solid rgba(255,255,255,.06)}
+    .kpi .label{font-size:11px; color:var(--muted)}
+    .kpi .value{font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:15px; margin-top:6px}
+    svg{width:100%; height:520px; display:block; background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.005)); border-radius:12px}
+    .legend{display:flex; gap:14px; font-size:12px; color:var(--muted); margin:8px 0 0 4px; align-items:center}
+    .dot{width:10px; height:10px; border-radius:50%}
+    .dot.obs{background:#8bd0ff}
+    .dot.fit{background:var(--accent)}
+    .dot.res{background:var(--bad)}
+    .aside{font-size:13px; color:#cdd6ea; line-height:1.5}
+    .aside code{background:rgba(255,255,255,.06); padding:2px 6px; border-radius:6px}
+    table{width:100%; border-collapse:separate; border-spacing:0 6px; font-size:12px}
+    th{color:#bcd0f5; text-align:left; font-weight:600}
+    td,th{padding:6px 8px}
+    tbody tr{background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07)}
+    tbody tr td:first-child, thead tr th:first-child{border-top-left-radius:8px; border-bottom-left-radius:8px}
+    tbody tr td:last-child, thead tr th:last-child{border-top-right-radius:8px; border-bottom-right-radius:8px}
+    details{margin:8px 0}
+    summary{cursor:pointer; color:#cfe7ff}
+    .note{font-size:12px; color:#9fb0c7}
+    .footer{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>OLS Linear Regression – Interactive Teaching Lab</h1>
+      <div style="display:flex; gap:8px">
+        <button class="btn ghost" id="btnExport">Export CSV</button>
+        <button class="btn" id="btnReset">Reset</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="grid">
+      <section class="card">
+        <h2>1) Explore the model visually</h2>
+        <div class="controls" style="margin-bottom:10px">
+          <div class="field">
+            <label>Intercept (a)</label>
+            <input id="a" type="range" min="-10" max="10" step="0.1" value="2" />
+          </div>
+          <div class="field">
+            <label>Slope (b)</label>
+            <input id="b" type="range" min="-5" max="5" step="0.05" value="1" />
+          </div>
+          <div class="field">
+            <label>Noise σ</label>
+            <input id="noise" type="range" min="0" max="4" step="0.1" value="1.2" />
+          </div>
+          <div class="field">
+            <label>n (points)</label>
+            <input id="n" type="range" min="10" max="120" step="1" value="30" />
+          </div>
+          <div class="field">
+            <button id="btnGenerate" class="btn secondary">Generate Data</button>
+          </div>
+          <div class="field">
+            <button id="btnFit" class="btn">Fit by OLS</button>
+          </div>
+        </div>
+        <div class="legend">
+          <span class="dot obs"></span> Observed (x, y)
+          <span class="dot res"></span> Residuals (vertical)
+          <span class="dot fit"></span> Fitted line y = â + b̂x
+        </div>
+        <svg id="chart" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet"></svg>
+        <div class="kpis">
+          <div class="kpi"><div class="label">SSE = ∑ eᵢ²</div><div class="value" id="sse">–</div></div>
+          <div class="kpi"><div class="label">MSE = SSE/(n-2)</div><div class="value" id="mse">–</div></div>
+          <div class="kpi"><div class="label">R²</div><div class="value" id="r2">–</div></div>
+          <div class="kpi"><div class="label">b̂ (slope), â (intercept)</div><div class="value" id="coef">–</div></div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h2>2) What is OLS?</h2>
+        <div class="aside">
+          <p><strong>Ordinary Least Squares (OLS)</strong> chooses <code>â, b̂</code> to minimize the sum of squared residuals: <code>SSE(a,b) = Σ (yᵢ − (a + b xᵢ))²</code>.</p>
+          <details open>
+            <summary>Closed‑form solution</summary>
+            <p>
+              Let <code>x̄</code>, <code>ȳ</code> be sample means; <code>S<sub>xx</sub> = Σ (xᵢ−x̄)²</code>, <code>S<sub>xy</sub> = Σ (xᵢ−x̄)(yᵢ−ȳ)</code>.
+              Then <code>b̂ = S<sub>xy</sub> / S<sub>xx</sub></code>, and <code>â = ȳ − b̂ x̄</code>.
+            </p>
+          </details>
+          <details>
+            <summary>Goodness‑of‑fit</summary>
+            <p>
+              <code>R² = 1 − SSE/SST</code>, where <code>SST = Σ (yᵢ − ȳ)²</code> measures total variability. <code>MSE = SSE/(n−2)</code> estimates σ².
+            </p>
+          </details>
+          <details>
+            <summary>Geometry intuition</summary>
+            <p>
+              The fitted values are the orthogonal projection of <code>y</code> onto the column space of <code>[1, x]</code>. OLS makes residuals orthogonal to both 1 and x: <code>Σ eᵢ = 0</code>, <code>Σ xᵢ eᵢ = 0</code>.
+            </p>
+          </details>
+          <details>
+            <summary>Try a small experiment</summary>
+            <ol>
+              <li>Click <em>Generate Data</em> with known <code>a</code>, <code>b</code>, and σ.</li>
+              <li>Move <em>a</em> and <em>b</em> sliders to minimize SSE manually.</li>
+              <li>Click <em>Fit by OLS</em> to jump to the optimum and compare.</li>
+              <li>Toggle <em>Animate descent</em> below to see gradient descent approach OLS.</li>
+            </ol>
+          </details>
+          <div style="display:flex; align-items:center; gap:8px; margin-top:10px">
+            <input id="chkAnim" type="checkbox" />
+            <label for="chkAnim">Animate gradient descent to minimize SSE</label>
+          </div>
+          <div class="note">Tip: Move points! Drag any point to see how a single observation can shift the fit and residuals.</div>
+      </aside>
+    </div>
+
+    <section class="card" style="margin-top:18px">
+      <h2>3) Data & Residuals</h2>
+      <div id="tableWrap" style="max-height:260px; overflow:auto; border-radius:12px; border:1px solid rgba(255,255,255,.08); padding:6px"></div>
+      <div class="footer">
+        <button class="btn ghost" id="btnAddOutlier">Add an outlier</button>
+        <button class="btn ghost" id="btnShuffleX">Shuffle x</button>
+        <button class="btn ghost" id="btnCenterScale">Center x (x − x̄)</button>
+        <button class="btn ghost" id="btnClear">Clear data</button>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:18px">
+      <h2>4) Derivation Sketch (optional)</h2>
+      <div class="aside">
+        <p>Set partial derivatives to zero:</p>
+        <p>∂SSE/∂a = −2 Σ (yᵢ − a − b xᵢ) = 0 ⇒ n a + b Σ xᵢ = Σ yᵢ</p>
+        <p>∂SSE/∂b = −2 Σ xᵢ (yᵢ − a − b xᵢ) = 0 ⇒ a Σ xᵢ + b Σ xᵢ² = Σ xᵢ yᵢ</p>
+        <p>Solve this 2×2 system for <code>a</code> and <code>b</code> to obtain the closed‑form above.</p>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ===== Utilities =====
+    const randn = () => {
+      // Box-Muller
+      let u = 0, v = 0; while(u===0) u=Math.random(); while(v===0) v=Math.random();
+      return Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
+    };
+    const fmt = (x, k=3) => (isFinite(x) ? Number(x).toFixed(k) : '–');
+
+    // ===== State =====
+    let data = [];// {x,y}
+    let fitted = {a: 0, b: 1};
+    let manual = {a: 2, b: 1};
+    let anim = {running:false, a:null, b:null, t:0};
+
+    // ===== DOM =====
+    const elA = document.getElementById('a');
+    const elB = document.getElementById('b');
+    const elN = document.getElementById('n');
+    const elNoise = document.getElementById('noise');
+    const svg = document.getElementById('chart');
+    const btnGen = document.getElementById('btnGenerate');
+    const btnFit = document.getElementById('btnFit');
+    const btnReset = document.getElementById('btnReset');
+    const btnExport = document.getElementById('btnExport');
+    const btnAddOutlier = document.getElementById('btnAddOutlier');
+    const btnShuffleX = document.getElementById('btnShuffleX');
+    const btnCenterScale = document.getElementById('btnCenterScale');
+    const btnClear = document.getElementById('btnClear');
+    const chkAnim = document.getElementById('chkAnim');
+    const elSSE = document.getElementById('sse');
+    const elMSE = document.getElementById('mse');
+    const elR2  = document.getElementById('r2');
+    const elCoef = document.getElementById('coef');
+
+    // ===== Scales =====
+    const pad = {l:60, r:20, t:20, b:40};
+    const W=800, H=520, innerW=W-pad.l-pad.r, innerH=H-pad.t-pad.b;
+    let xMin=-5, xMax=5, yMin=-10, yMax=10;
+    const xScale = x=> pad.l + (x - xMin) / (xMax-xMin) * innerW;
+    const yScale = y=> pad.t + innerH - (y - yMin) / (yMax-yMin) * innerH;
+    const invX = X=> xMin + ( (X - pad.l) / innerW) * (xMax - xMin);
+    const invY = Y=> yMin + ( (pad.t + innerH - Y) / innerH) * (yMax - yMin);
+
+    // ===== Draw Axes =====
+    function drawAxes(){
+      svg.innerHTML = '';
+      const g = elem('g', {transform:""});
+      // X axis
+      g.appendChild(line(pad.l, pad.t+innerH, pad.l+innerW, pad.t+innerH, '#5872a8'));
+      // Y axis
+      g.appendChild(line(pad.l, pad.t, pad.l, pad.t+innerH, '#5872a8'));
+      // ticks
+      for(let x=-5; x<=5; x++){
+        const X=xScale(x); g.appendChild(line(X, pad.t+innerH, X, pad.t+innerH+6, '#5872a8'));
+        g.appendChild(text(X, pad.t+innerH+18, x.toString(), 'middle'));
+      }
+      for(let y=-10; y<=10; y+=2){
+        const Y=yScale(y); g.appendChild(line(pad.l-6, Y, pad.l, Y, '#5872a8'));
+        g.appendChild(text(pad.l-12, Y+4, y.toString(), 'end'));
+      }
+      g.appendChild(text(pad.l+innerW/2, H-8, 'x', 'middle'));
+      g.appendChild(text(18, pad.t+innerH/2, 'y', 'middle'));
+      svg.appendChild(g);
+    }
+
+    // ===== SVG helpers =====
+    function elem(tag, attrs){ const e=document.createElementNS('http://www.w3.org/2000/svg', tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+    const circle = (cx,cy,r,fill,stroke, cls='')=>{ const c=elem('circle',{cx,cy,r,fill,stroke}); if(cls) c.setAttribute('class',cls); return c; };
+    const line = (x1,y1,x2,y2,stroke)=> elem('line',{x1,y1,x2,y2,stroke,'stroke-width':1.5,opacity:.9});
+    const text = (x,y,str,anchor='start')=> elem('text',{x,y,fill:'#aecdff','text-anchor':anchor,style:'font-size:11px; user-select:none'}, str);
+    const path = (d, stroke, cls='')=>{ const p=elem('path',{d,stroke,'stroke-width':2, fill:'none'}); if(cls) p.setAttribute('class',cls); return p; };
+
+    // ===== Data generation =====
+    function generateData(){
+      const n = +elN.value; const a = +elA.value; const b = +elB.value; const s = +elNoise.value;
+      data = Array.from({length:n}, (_,i)=>{
+        const x = -4.5 + 9 * (i/(n-1) + (Math.random()-0.5)/n*2);
+        const y = a + b*x + s*randn();
+        return {x,y};
+      });
+      manual.a = a; manual.b = b;
+      rescaleToData();
+      draw();
+      updateTable();
+    }
+
+    function rescaleToData(){
+      // expand bounds with padding
+      if(data.length===0) return;
+      const xs = data.map(d=>d.x), ys=data.map(d=>d.y);
+      const min = arr => Math.min(...arr), max = arr => Math.max(...arr);
+      xMin = Math.floor(min(xs)-1); xMax = Math.ceil(max(xs)+1);
+      yMin = Math.floor(min(ys)-2); yMax = Math.ceil(max(ys)+2);
+    }
+
+    // ===== Stats =====
+    function statsFit(d){
+      const n = d.length; if(!n) return null;
+      const xbar = d.reduce((s,v)=>s+v.x,0)/n; const ybar = d.reduce((s,v)=>s+v.y,0)/n;
+      let Sxx=0, Sxy=0, Syy=0; for(const v of d){
+        const dx=v.x - xbar; const dy=v.y - ybar; Sxx += dx*dx; Sxy += dx*dy; Syy += dy*dy;
+      }
+      const b = Sxy / Sxx; const a = ybar - b*xbar;
+      return {a,b,xbar,ybar,Sxx,Sxy,Syy};
+    }
+
+    function sseOf(a,b){
+      return data.reduce((s,v)=>{ const e=v.y - (a + b*v.x); return s + e*e; }, 0);
+    }
+
+    function r2Of(a,b){
+      const n=data.length; if(!n) return 0; const ybar = data.reduce((s,v)=>s+v.y,0)/n;
+      const sst = data.reduce((s,v)=>{ const d=v.y - ybar; return s + d*d; }, 0);
+      const sse = sseOf(a,b); return 1 - sse/sst;
+    }
+
+    // ===== Drawing =====
+    function draw(){
+      drawAxes();
+      const g = elem('g',{}); svg.appendChild(g);
+
+      // Residuals for manual line
+      const a = manual.a, b = manual.b;
+      for(const v of data){
+        const yhat = a + b*v.x; g.appendChild(line(xScale(v.x), yScale(v.y), xScale(v.x), yScale(yhat), 'var(--bad)'));
+      }
+
+      // Points (draggable)
+      data.forEach((v,i)=>{
+        const c = circle(xScale(v.x), yScale(v.y), 4.5, '#8bd0ff', '#0e2542');
+        c.style.cursor='grab';
+        c.addEventListener('pointerdown', (e)=> startDrag(e, i));
+        g.appendChild(c);
+      });
+
+      // Manual line
+      const x1=xMin, x2=xMax; const y1=a + b*x1, y2=a + b*x2;
+      const d=`M ${xScale(x1)} ${yScale(y1)} L ${xScale(x2)} ${yScale(y2)}`;
+      g.appendChild(path(d, 'var(--accent)'));
+
+      // KPIs
+      const n=data.length; const sse = sseOf(a,b); const mse = sse/(Math.max(1,n-2)); const r2 = r2Of(a,b);
+      elSSE.textContent = fmt(sse,3);
+      elMSE.textContent = fmt(mse,3);
+      elR2.textContent  = fmt(r2,3);
+      elCoef.textContent = `b̂=${fmt(b,3)}, â=${fmt(a,3)}`;
+    }
+
+    // ===== Dragging points =====
+    let dragging = null; // index
+    function startDrag(evt, idx){
+      dragging = idx; const el = evt.target; el.setPointerCapture(evt.pointerId); el.style.cursor='grabbing';
+      const move = (e)=>{
+        const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; // not used; we'll use offset from svg bbox
+        const rect = svg.getBoundingClientRect();
+        const X = e.clientX - rect.left; const Y = e.clientY - rect.top;
+        const x = invX(X); const y = invY(Y);
+        data[idx].x = Math.max(xMin-2, Math.min(xMax+2, x));
+        data[idx].y = Math.max(yMin-4, Math.min(yMax+4, y));
+        draw(); updateTable(false);
+      };
+      const up = (e)=>{
+        evt.target.releasePointerCapture(evt.pointerId); dragging=null; draw(); updateTable();
+        window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
+      };
+      window.addEventListener('pointermove', move);
+      window.addEventListener('pointerup', up);
+    }
+
+    // ===== Table =====
+    function updateTable(sort=true){
+      const n=data.length; const a=manual.a, b=manual.b;
+      const rows = data.map((v,i)=>{
+        const yhat = a + b*v.x; const e = v.y - yhat; return {i, x:v.x, y:v.y, yhat, e, e2:e*e};
+      });
+      if(sort) rows.sort((p,q)=> p.x - q.x);
+      const head = `<table><thead><tr><th>#</th><th>x</th><th>y</th><th>ŷ</th><th>e=y−ŷ</th><th>e²</th></tr></thead><tbody>`;
+      const body = rows.map(r=> `<tr><td>${r.i+1}</td><td>${fmt(r.x,3)}</td><td>${fmt(r.y,3)}</td><td>${fmt(r.yhat,3)}</td><td style="color:${r.e>=0?'#8af7a5':'#ff9e9e'}">${fmt(r.e,3)}</td><td>${fmt(r.e2,3)}</td></tr>`).join('');
+      document.getElementById('tableWrap').innerHTML = head + body + '</tbody></table>';
+    }
+
+    // ===== Events =====
+    elA.addEventListener('input', ()=>{ manual.a = +elA.value; draw(); updateTable(false); });
+    elB.addEventListener('input', ()=>{ manual.b = +elB.value; draw(); updateTable(false); });
+    btnGen.addEventListener('click', ()=> generateData());
+    btnFit.addEventListener('click', ()=>{
+      const sol = statsFit(data); if(!sol) return; fitted = {a:sol.a, b:sol.b};
+      animateTo(sol.a, sol.b);
+    });
+    btnReset.addEventListener('click', ()=>{ elA.value=2; elB.value=1; elNoise.value=1.2; elN.value=30; generateData(); });
+    btnExport.addEventListener('click', ()=>{
+      const a=manual.a, b=manual.b; const rows = data.map((v,i)=>{ const yhat=a+b*v.x; const e=v.y-yhat; return {i:i+1, x:v.x, y:v.y, yhat, e, e2:e*e}; });
+      const csv = ['idx,x,y,yhat,residual,e2'].concat(rows.map(r=> [r.i,r.x,r.y,r.yhat,r.e,r.e2].join(','))).join('\n');
+      const blob = new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob);
+      const aEl=document.createElement('a'); aEl.href=url; aEl.download='ols_data.csv'; aEl.click(); URL.revokeObjectURL(url);
+    });
+    btnAddOutlier.addEventListener('click', ()=>{ if(data.length===0) return; const x = xMax + 2; const y = manual.a + manual.b*x + 6; data.push({x,y}); rescaleToData(); draw(); updateTable(); });
+    btnShuffleX.addEventListener('click', ()=>{ for(const v of data){ v.x += (Math.random()-.5)*2; } rescaleToData(); draw(); updateTable(); });
+    btnCenterScale.addEventListener('click', ()=>{
+      if(data.length===0) return; const xbar = data.reduce((s,v)=>s+v.x,0)/data.length; for(const v of data){ v.x = v.x - xbar; } rescaleToData(); draw(); updateTable();
+    });
+    btnClear.addEventListener('click', ()=>{ data=[]; draw(); updateTable(); });
+    chkAnim.addEventListener('change', ()=>{ if(chkAnim.checked && !anim.running) animateDescent(); });
+
+    // ===== Animations =====
+    function animateTo(a1,b1){
+      const steps = 60; let k=0; const a0=manual.a, b0=manual.b;
+      const tick = ()=>{
+        k++; const t = (1 - Math.cos(Math.PI * (k/steps)))/2; // ease in-out
+        manual.a = a0 + (a1 - a0)*t; manual.b = b0 + (b1 - b0)*t; draw(); updateTable(false);
+        if(k<steps) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+
+    function animateDescent(){
+      if(anim.running || data.length===0) return; anim.running = true;
+      anim.a = manual.a; anim.b = manual.b; anim.t=0;
+      const lrA = 0.02, lrB = 0.02; // learning rates
+      const step = ()=>{
+        if(!chkAnim.checked){ anim.running=false; return; }
+        // compute gradients
+        let ga=0, gb=0; const n=data.length;
+        for(const v of data){ const e = v.y - (anim.a + anim.b*v.x); ga += -2*e; gb += -2*e*v.x; }
+        // update
+        anim.a -= lrA * ga/n; anim.b -= lrB * gb/n;
+        manual.a = anim.a; manual.b = anim.b;
+        draw(); updateTable(false);
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+
+    // ===== Init =====
+    generateData();
+  </script>
+</body>
+</html>

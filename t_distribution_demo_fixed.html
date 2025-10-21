@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>t 分布 · 总体→样本均值→Z/t 标准化→自由度变化（修正版）</title>
+  <!-- Chart.js v4 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <!-- MathJax v3 -->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --panel:#121933;
+      --accent:#6ee7ff;
+      --muted:#a2b0d0;
+      --card:#0f1530;
+      --ring:#2a335a;
+      --ok:#21d19f;
+      --danger:#ff6b6b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; padding:24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC",
+                   "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(110,231,255,.12), transparent 40%) ,
+                  radial-gradient(900px 600px at 120% 0%, rgba(110,231,255,.08), transparent 50%),
+                  var(--bg);
+      color:#e8eeff;
+    }
+    .container{
+      max-width:1100px; margin:0 auto;
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--ring);
+      border-radius:16px; padding:20px 20px 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(6px);
+    }
+    h1{
+      margin:0 0 8px; font-weight:800; letter-spacing:.4px;
+      font-size: clamp(20px, 2.2vw, 28px);
+    }
+    .subtitle{ color:var(--muted); margin-bottom:18px; font-size:14px }
+    .steps{ display:flex; gap:10px; flex-wrap:wrap; margin:8px 0 14px }
+    .step-btn{
+      appearance:none; border:1px solid var(--ring); color:#cfe6ff;
+      background:var(--panel); padding:8px 12px; border-radius:12px;
+      font-weight:600; cursor:pointer; transition:.2s;
+    }
+    .step-btn:hover{ transform: translateY(-1px); border-color:#7dd3fc }
+    .step-btn.active{ background:linear-gradient(180deg, #1b2750, #151d3e); color:#fff; border-color:#7dd3fc }
+    .grid{ display:grid; grid-template-columns: 1.2fr .9fr; gap:16px; align-items:start }
+    .card{ background:var(--card); border:1px solid var(--ring); border-radius:14px; padding:12px 14px }
+    .card h3{ margin:0 0 10px; font-size:16px }
+    canvas{ width:100%; height:480px }
+    .controls{ display:grid; gap:10px }
+    .ctrl-row{ display:grid; grid-template-columns: 1fr auto 70px; gap:10px; align-items:center }
+    .ctrl-row label{ color:#cfddff; font-size:13px }
+    input[type=range]{ width:100% }
+    input[type=number]{
+      width:100%; padding:6px 8px; border-radius:8px;
+      background:#0e1430; color:#e8eeff; border:1px solid var(--ring);
+    }
+    .hint{ color:var(--muted); font-size:12px; margin-top:8px }
+    .formula{ background:#0d1330; border:1px dashed #3a4570; padding:10px 12px; border-radius:12px; }
+    .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+    .btn{
+      background:#15204a; border:1px solid var(--ring); color:#d8ecff;
+      padding:8px 10px; border-radius:10px; cursor:pointer; font-weight:600;
+    }
+    .btn:hover{ border-color:#7dd3fc }
+    .ok{ color:var(--ok) }
+    .danger{ color:var(--danger) }
+    .divider{ height:1px; background:linear-gradient(90deg, transparent, #2a335a, transparent); margin:10px 0 }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>t 分布是怎么来的？一步步可视化</h1>
+    <div class="subtitle">① 总体分布 → ② 样本均值分布 → ③ Z / t 标准化 → ④ 不同自由度下 t 分布</div>
+
+    <div class="steps">
+      <button class="step-btn active" data-step="1">① 总体分布</button>
+      <button class="step-btn" data-step="2">② 样本均值分布</button>
+      <button class="step-btn" data-step="3">③ Z / t 标准化</button>
+      <button class="step-btn" data-step="4">④ t 分布自由度</button>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3 id="chartTitle">总体分布 N(μ, σ²)</h3>
+        <canvas id="chart"></canvas>
+        <div class="row" style="margin-top:10px">
+          <button id="btnReset" class="btn">重置参数</button>
+          <button id="btnPNG" class="btn">导出图像 PNG</button>
+          <span class="hint">提示：拖动滑块可以即时更新曲线</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>参数与公式</h3>
+        <div id="panel1" class="controls">
+          <div class="ctrl-row">
+            <label>μ（总体均值）</label>
+            <input id="mu" type="range" min="-10" max="10" step="0.1" value="0" />
+            <input id="muNum" type="number" step="0.1" value="0" />
+          </div>
+          <div class="ctrl-row">
+            <label>σ（总体标准差）</label>
+            <input id="sigma" type="range" min="0.5" max="10" step="0.1" value="3" />
+            <input id="sigmaNum" type="number" step="0.1" value="3" />
+          </div>
+          <div class="formula">
+            $$ f_X(x) = \frac{1}{\sigma \sqrt{2\pi}} \exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right) $$
+          </div>
+        </div>
+
+        <div id="panel2" class="controls" style="display:none">
+          <div class="ctrl-row">
+            <label>样本量 n</label>
+            <input id="n" type="range" min="2" max="500" step="1" value="25" />
+            <input id="nNum" type="number" step="1" value="25" />
+          </div>
+          <div class="hint">样本均值分布：\( \overline{X} \sim N(\mu, \sigma^2/n) \).</div>
+          <div class="formula">
+            $$ f_{\overline{X}}(x) = \frac{1}{\frac{\sigma}{\sqrt{n}} \sqrt{2\pi}} \exp\!\left(-\frac{(x-\mu)^2}{2(\sigma^2/n)}\right) $$
+          </div>
+        </div>
+
+        <div id="panel3" class="controls" style="display:none">
+          <div class="ctrl-row">
+            <label>样本量 n（决定自由度 \(v=n-1\)）</label>
+            <input id="nStd" type="range" min="2" max="200" step="1" value="10" />
+            <input id="nStdNum" type="number" step="1" value="10" />
+          </div>
+          <div class="hint">蓝色：标准正态 \(Z\sim N(0,1)\)；红色：t 分布，\(v=n-1\)。</div>
+          <div class="formula">
+            <div><b>Z 标准化（σ 已知）</b></div>
+            $$ Z = \frac{\overline{X}-\mu}{\sigma/\sqrt{n}} $$
+            <div class="divider"></div>
+            <div><b>t 标准化（σ 未知，以样本标准差 \(S\) 代替）</b></div>
+            $$ t = \frac{\overline{X}-\mu}{S/\sqrt{n}},\quad v=n-1 $$
+          </div>
+        </div>
+
+        <div id="panel4" class="controls" style="display:none">
+          <div class="ctrl-row">
+            <label>自由度 v</label>
+            <input id="df" type="range" min="1" max="200" step="1" value="4" />
+            <input id="dfNum" type="number" step="1" value="4" />
+          </div>
+          <div class="hint">灰虚线：\(N(0,1)\)。自由度越大，t 分布越接近标准正态。</div>
+          <div class="formula">
+            $$ f_{t_v}(x) = \frac{\Gamma\!\left(\frac{v+1}{2}\right)}{\sqrt{v\pi}\ \Gamma\!\left(\frac{v}{2}\right)} \left(1+\frac{x^2}{v}\right)^{-\frac{v+1}{2}} $$
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- 数学工具：log Γ（Lanczos 近似）与分布密度 ----------
+    function logGamma(z){
+      // Lanczos 7-term; 参考 Num. Recipes / Boost
+      const g = 7;
+      const p = [
+        0.99999999999980993,
+        676.5203681218851,
+        -1259.1392167224028,
+        771.32342877765313,
+        -176.61502916214059,
+        12.507343278686905,
+        -0.13857109526572012,
+        9.9843695780195716e-6,
+        1.5056327351493116e-7
+      ];
+      if (z < 0.5){
+        // 反射公式 Γ(z)Γ(1-z)=π/sin(πz)
+        return Math.log(Math.PI) - Math.log(Math.sin(Math.PI*z)) - logGamma(1 - z);
+      }
+      z -= 1;
+      let x = p[0];
+      for (let i=1;i<p.length;i++) x += p[i] / (z + i);
+      const t = z + g + 0.5;
+      return 0.5*Math.log(2*Math.PI) + (z+0.5)*Math.log(t) - t + Math.log(x);
+    }
+    function normalPDF(x, mu=0, sigma=1){
+      const s2 = sigma*sigma;
+      return (1/Math.sqrt(2*Math.PI*s2)) * Math.exp(-(x-mu)*(x-mu)/(2*s2));
+    }
+    function tPDF(x, v){
+      v = Math.max(1, Number(v)||1);
+      // 使用 log 形式避免上溢/下溢
+      const a = 0.5*(v+1);
+      const logCoeff = logGamma(a) - (0.5*Math.log(v*Math.PI) + logGamma(0.5*v));
+      const logCore  = -a * Math.log(1 + (x*x)/v);
+      return Math.exp(logCoeff + logCore);
+    }
+
+    // ---------- 生成数值点 ----------
+    function linspace(a,b,n){
+      const step=(b-a)/(n-1);
+      return Array.from({length:n}, (_,i)=>a+i*step);
+    }
+    function makeSeries(xs, fx){
+      return xs.map(x => ({x, y: fx(x)}));
+    }
+
+    // ---------- Chart.js 基础 ----------
+    const ctx = document.getElementById('chart');
+    /** @type {Chart} */
+    let chart = null;
+    function renderChart(datasets, xLabel, title, xMin, xMax){
+      if (chart) chart.destroy();
+      chart = new Chart(ctx, {
+        type:'line',
+        data:{ datasets },
+        options:{
+          responsive:true,
+          animation:{ duration:180 },
+          interaction:{ intersect:false, mode:'index' },
+          plugins:{
+            legend:{ labels:{ color:'#dbe8ff' } },
+            title:{ display:false, text:title }
+          },
+          scales:{
+            x:{
+              type:'linear',
+              min:xMin, max:xMax,
+              title:{ display:true, text:xLabel, color:'#cfe6ff' },
+              ticks:{ color:'#cfe6ff' },
+              grid:{ color:'rgba(255,255,255,.06)' }
+            },
+            y:{
+              beginAtZero:true,
+              title:{ display:true, text:'密度', color:'#cfe6ff' },
+              ticks:{ color:'#cfe6ff' },
+              grid:{ color:'rgba(255,255,255,.06)' }
+            }
+          }
+        }
+      });
+      document.getElementById('chartTitle').innerText = title;
+    }
+
+    // ---------- 控件联动（range ↔ number） ----------
+    function bindTwin(rangeEl, numEl, onChange){
+      const sync = (src, dst) => () => { dst.value = src.value; onChange(); };
+      rangeEl.addEventListener('input', sync(rangeEl, numEl));
+      numEl.addEventListener('input', sync(numEl, rangeEl));
+    }
+
+    // ---------- 各步骤绘图 ----------
+    const els = {
+      mu: document.getElementById('mu'),
+      muNum: document.getElementById('muNum'),
+      sigma: document.getElementById('sigma'),
+      sigmaNum: document.getElementById('sigmaNum'),
+      n: document.getElementById('n'),
+      nNum: document.getElementById('nNum'),
+      nStd: document.getElementById('nStd'),
+      nStdNum: document.getElementById('nStdNum'),
+      df: document.getElementById('df'),
+      dfNum: document.getElementById('dfNum'),
+      panels: [document.getElementById('panel1'),document.getElementById('panel2'),document.getElementById('panel3'),document.getElementById('panel4')],
+      btnReset: document.getElementById('btnReset'),
+      btnPNG: document.getElementById('btnPNG'),
+      steps: Array.from(document.querySelectorAll('.step-btn'))
+    };
+
+    function drawStep1(){
+      const mu = +els.mu.value, sigma = +els.sigma.value;
+      const xMin = mu - 4*sigma, xMax = mu + 4*sigma;
+      const xs = linspace(xMin, xMax, 401);
+      const series = makeSeries(xs, (x)=>normalPDF(x, mu, sigma));
+      renderChart([{
+        label:`总体分布 N(${mu.toFixed(1)}, ${sigma.toFixed(1)}²)`,
+        data: series, fill:false, tension:.15, borderWidth:2
+      }], 'x', '总体分布 N(μ, σ²)', xMin, xMax);
+    }
+
+    function drawStep2(){
+      const mu = +els.mu.value, sigma = +els.sigma.value, n = Math.max(2, +els.n.value|0);
+      const se = sigma / Math.sqrt(n);
+      const xMin = mu - 4*se, xMax = mu + 4*se;
+      const xs = linspace(xMin, xMax, 401);
+      const series = makeSeries(xs, (x)=>normalPDF(x, mu, se));
+      renderChart([{
+        label:`样本均值分布 N(${mu.toFixed(1)}, (${sigma.toFixed(1)}²/${n}) )`,
+        data: series, fill:false, tension:.15, borderWidth:2
+      }], 'x̄', '样本均值分布 N(μ, σ²/n)', xMin, xMax);
+    }
+
+    function drawStep3(){
+      const n = Math.max(2, +els.nStd.value|0);
+      const v = n - 1;
+      const xMin = -5, xMax = 5;
+      const xs = linspace(xMin, xMax, 601);
+      const zSeries = makeSeries(xs, (x)=>normalPDF(x, 0, 1));
+      const tSeries = makeSeries(xs, (x)=>tPDF(x, v));
+      renderChart([
+        { label:'Z ~ N(0,1)', data:zSeries, borderWidth:2, borderDash:[6,6], tension:.15 },
+        { label:`t (v=${v})`, data:tSeries, borderWidth:2, tension:.15 }
+      ], '标准化统计量', 'Z 与 t 的对比', xMin, xMax);
+    }
+
+    function drawStep4(){
+      const v = Math.max(1, +els.df.value|0);
+      const xMin = -5, xMax = 5;
+      const xs = linspace(xMin, xMax, 601);
+      const tSeries = makeSeries(xs, (x)=>tPDF(x, v));
+      const zSeries = makeSeries(xs, (x)=>normalPDF(x, 0, 1));
+      renderChart([
+        { label:`t 分布 (v=${v})`, data:tSeries, borderWidth:2, tension:.15 },
+        { label:'标准正态 N(0,1)', data:zSeries, borderWidth:2, borderDash:[6,6], tension:.15 }
+      ], 't 值', '不同自由度下的 t 分布', xMin, xMax);
+    }
+
+    // ---------- 步骤切换与面板显示 ----------
+    let currentStep = 1;
+    function showStep(step){
+      currentStep = step;
+      els.steps.forEach((b,i)=>b.classList.toggle('active', i===step-1));
+      els.panels.forEach((p,i)=>p.style.display = (i===step-1)?'block':'none');
+      if (step===1) drawStep1();
+      if (step===2) drawStep2();
+      if (step===3) drawStep3();
+      if (step===4) drawStep4();
+      if (window.MathJax) MathJax.typesetPromise();
+    }
+
+    // ---------- 绑定事件 ----------
+    bindTwin(els.mu, els.muNum, ()=>{ if(currentStep===1||currentStep===2) showStep(currentStep); });
+    bindTwin(els.sigma, els.sigmaNum, ()=>{ if(currentStep===1||currentStep===2) showStep(currentStep); });
+    bindTwin(els.n, els.nNum, ()=>{ if(currentStep===2) showStep(2); });
+    bindTwin(els.nStd, els.nStdNum, ()=>{ if(currentStep===3) showStep(3); });
+    bindTwin(els.df, els.dfNum, ()=>{ if(currentStep===4) showStep(4); });
+
+    els.steps.forEach(btn => {
+      btn.addEventListener('click', ()=> showStep(+btn.dataset.step));
+    });
+
+    els.btnReset.addEventListener('click', ()=>{
+      els.mu.value = els.muNum.value = 0;
+      els.sigma.value = els.sigmaNum.value = 3;
+      els.n.value = els.nNum.value = 25;
+      els.nStd.value = els.nStdNum.value = 10;
+      els.df.value = els.dfNum.value = 4;
+      showStep(currentStep);
+    });
+
+    els.btnPNG.addEventListener('click', ()=>{
+      const url = chart.toBase64Image('image/png', 1);
+      const a = document.createElement('a');
+      a.href = url; a.download = 't-demo.png';
+      document.body.appendChild(a); a.click(); a.remove();
+    });
+
+    // 初始
+    showStep(1);
+  </script>
+</body>
+</html>

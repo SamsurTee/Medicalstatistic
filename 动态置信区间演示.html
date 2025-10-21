@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>动态置信区间演示 - 95% Confidence Interval</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      border-radius: 8px;
+    }
+    h1 {
+      text-align: center;
+    }
+    canvas {
+      margin-top: 30px;
+    }
+    .controls, .results {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+    .controls label, .controls input, .controls select, .controls button {
+      margin: 5px;
+      font-size: 16px;
+    }
+    .results p {
+      margin: 5px;
+      font-size: 16px;
+    }
+    button {
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>动态置信区间演示</h1>
+    <canvas id="ciChart" width="800" height="500"></canvas>
+
+    <div class="controls">
+      <div>
+        <label for="sampleSize">样本容量 (n):</label>
+        <input type="range" id="sampleSize" min="5" max="100" value="30" step="1">
+        <span id="sampleSizeDisplay">30</span>
+      </div>
+      <div>
+        <label for="confidenceLevel">置信度:</label>
+        <select id="confidenceLevel">
+          <option value="0.80">80%</option>
+          <option value="0.90">90%</option>
+          <option value="0.95" selected>95%</option>
+          <option value="0.99">99%</option>
+        </select>
+      </div>
+      <div>
+        <label for="populationMean">总体均值:</label>
+        <input type="number" id="populationMean" value="50">
+      </div>
+      <div>
+        <label for="populationStd">总体标准差:</label>
+        <input type="number" id="populationStd" value="10">
+      </div>
+      <div>
+        <button onclick="addSample()">添加样本</button>
+        <button onclick="autoSample()">自动采样</button>
+        <button onclick="resetSamples()">重置</button>
+      </div>
+    </div>
+
+    <div class="results">
+      <p>当前样本均值: <span id="currentMean">-</span></p>
+      <p>置信区间: <span id="ciLow">-</span> - <span id="ciHigh">-</span></p>
+      <p>是否包含总体均值？<span id="containResult">-</span></p>
+      <p>成功次数 / 总样本: <span id="successCount">0</span> / <span id="totalSamples">0</span></p>
+    </div>
+  </div>
+
+  <script>
+    const ctx = document.getElementById('ciChart').getContext('2d');
+    let autoSampling = false;
+    let autoInterval;
+    const samples = [];
+    let successCount = 0;
+
+    const ciChart = new Chart(ctx, {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          label: 'Confidence Intervals',
+          data: [],
+          pointRadius: 0,
+          showLine: true,
+          borderWidth: 3
+        }]
+      },
+      options: {
+        responsive: false,
+        scales: {
+          x: {
+            title: { display: true, text: '样本编号' },
+            min: 0,
+            max: 20
+          },
+          y: {
+            title: { display: true, text: '值' },
+            min: 0,
+            max: 100
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          annotation: {
+            annotations: {}
+          }
+        }
+      }
+    });
+
+    function addSample() {
+      const n = parseInt(document.getElementById('sampleSize').value);
+      const mean = parseFloat(document.getElementById('populationMean').value);
+      const std = parseFloat(document.getElementById('populationStd').value);
+      const confLevel = parseFloat(document.getElementById('confidenceLevel').value);
+      const zValue = getZValue(confLevel);
+
+      const sampleData = Array.from({ length: n }, () => randomNormal(mean, std));
+      const sampleMean = average(sampleData);
+      const sampleStdDev = stdDeviation(sampleData);
+      const marginOfError = zValue * (sampleStdDev / Math.sqrt(n));
+      const ciLow = sampleMean - marginOfError;
+      const ciHigh = sampleMean + marginOfError;
+
+      const includesTrueMean = (ciLow <= mean && ciHigh >= mean);
+      if (includesTrueMean) successCount++;
+
+      samples.push({
+        sample: samples.length + 1,
+        ciLow: ciLow,
+        ciHigh: ciHigh,
+        includesTrueMean: includesTrueMean
+      });
+
+      drawChart();
+      updateStats(sampleMean, ciLow, ciHigh, includesTrueMean);
+    }
+
+    function autoSample() {
+      if (!autoSampling) {
+        autoSampling = true;
+        autoInterval = setInterval(() => {
+          addSample();
+          if (samples.length > 100) stopAuto();
+        }, 500);
+      } else {
+        stopAuto();
+      }
+    }
+
+    function stopAuto() {
+      autoSampling = false;
+      clearInterval(autoInterval);
+    }
+
+    function resetSamples() {
+      stopAuto();
+      samples.length = 0;
+      successCount = 0;
+      ciChart.data.datasets[0].data = [];
+      ciChart.update();
+      updateStats('-', '-', '-', '-');
+    }
+
+    function drawChart() {
+      const data = [];
+      samples.forEach(s => {
+        data.push({ x: s.sample, y: s.ciLow });
+        data.push({ x: s.sample, y: s.ciHigh });
+        data.push({ x: null, y: null });
+      });
+
+      ciChart.data.datasets[0].data = data;
+      ciChart.data.datasets[0].borderColor = samples.map(s => s.includesTrueMean ? 'blue' : 'red');
+      ciChart.options.scales.x.max = Math.max(samples.length + 1, 20);
+      ciChart.update();
+    }
+
+    function updateStats(mean, low, high, contain) {
+      document.getElementById('currentMean').innerText = round(mean);
+      document.getElementById('ciLow').innerText = round(low);
+      document.getElementById('ciHigh').innerText = round(high);
+      document.getElementById('containResult').innerText = contain === '-' ? '-' : (contain ? '✅ 是' : '❌ 否');
+      document.getElementById('successCount').innerText = successCount;
+      document.getElementById('totalSamples').innerText = samples.length;
+    }
+
+    function getZValue(confidence) {
+      switch (confidence) {
+        case 0.80: return 1.282;
+        case 0.90: return 1.645;
+        case 0.95: return 1.960;
+        case 0.99: return 2.576;
+        default: return 1.960;
+      }
+    }
+
+    function randomNormal(mean, stdDev) {
+      let u = 0, v = 0;
+      while (u === 0) u = Math.random();
+      while (v === 0) v = Math.random();
+      let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+      return z * stdDev + mean;
+    }
+
+    function average(arr) {
+      return arr.reduce((a, b) => a + b, 0) / arr.length;
+    }
+
+    function stdDeviation(arr) {
+      const avg = average(arr);
+      const squareDiffs = arr.map(value => {
+        const diff = value - avg;
+        return diff * diff;
+      });
+      const avgSquareDiff = average(squareDiffs);
+      return Math.sqrt(avgSquareDiff);
+    }
+
+    function round(val) {
+      return (val === '-' || isNaN(val)) ? '-' : val.toFixed(3);
+    }
+
+    document.getElementById('sampleSize').addEventListener('input', function () {
+      document.getElementById('sampleSizeDisplay').innerText = this.value;
+    });
+
+  </script>
+</body>
+</html>
