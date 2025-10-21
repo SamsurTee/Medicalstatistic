@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>卡方检验示范教学（Pearson / Yates / Fisher）</title>
+<style>
+  :root{
+    --bg:#fafafa;--card:#ffffff;--border:#e5e7eb;--text:#111827;--muted:#6b7280;--accent:#111827;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:24px;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  h1{margin:0 0 8px 0;font-size:24px}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
+  .container{max-width:1100px;margin:0 auto}
+  .row{display:grid;grid-template-columns:1fr;gap:16px}
+  @media (min-width:900px){.row{grid-template-columns:1fr 1fr 1fr}}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  label{font-size:14px;color:var(--muted);display:block;margin-bottom:6px}
+  input[type=number], select{width:100%;padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:#fff}
+  table{border-collapse:collapse}
+  th,td{border:1px solid var(--border);padding:6px 8px}
+  th{background:#f8fafc;text-align:left;font-weight:600}
+  .num{font-variant-numeric:tabular-nums}
+  .btn{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:8px}
+  .dot.green{background:#10b981}.dot.yellow{background:#f59e0b}.dot.red{background:#ef4444}
+  .grid{display:grid;gap:16px}
+  @media (min-width:900px){.grid.cols-2{grid-template-columns:1fr 1fr}}
+  .muted{color:var(--muted)}
+  .title-sm{font-weight:600;font-size:14px;margin-bottom:6px}
+  .pill{display:inline-block;background:#f3f4f6;border:1px solid var(--border);padding:4px 8px;border-radius:999px}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+  .right{text-align:right}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>卡方检验示范教学（Pearson / Yates / Fisher）</h1>
+  <div class="sub">按样本量 n 与期望数 E 的规则自动选择方法，也可手动覆盖；支持输入或随机生成数据；自动给出期望值、单元格贡献、统计量与 P 值。</div>
+  <div class="card">
+    <div class="controls">
+      <div>
+        <label>行数 r</label>
+        <input id="rows" type="number" min="2" max="8" value="2">
+      </div>
+      <div>
+        <label>列数 c</label>
+        <input id="cols" type="number" min="2" max="8" value="2">
+      </div>
+      <div>
+        <label>方法选择</label>
+        <select id="method">
+          <option value="auto">自动（按规则推荐）</option>
+          <option value="pearson_or_special">Pearson χ²（2×2/默认）</option>
+          <option value="special">2×2专用公式χ²</option>
+          <option value="yates">2×2 Yates连续性校正</option>
+          <option value="fisher">2×2 Fisher确切概率</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:14px" class="muted mono">规则：① n≥40 且所有 E≥5 → 基本 χ²；② n≥40 且有 1≤E&lt;5（2×2）→ Yates；③ n&lt;40 或 E&lt;1（2×2）→ Fisher。</div>
+  </div>
+
+  <div class="card" id="dataCard">
+    <div class="title-sm">输入观测频数（非负整数）</div>
+    <div class="tableWrap" id="tableWrap"></div>
+    <div class="btns">
+      <button class="btn primary" id="btnRnd">随机生成演示数据</button>
+      <button class="btn" id="btnStrong">生成差异明显的数据</button>
+      <button class="btn" id="btnZero">清零</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="card">
+      <div class="title-sm">样本/自由度/最小期望</div>
+      <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+        <div>
+          <div class="muted">样本量 n</div>
+          <div id="n" class="num" style="font-size:22px;font-weight:700">—</div>
+        </div>
+        <div>
+          <div class="muted">自由度 df</div>
+          <div id="df" class="num" style="font-size:22px;font-weight:700">—</div>
+        </div>
+        <div>
+          <div class="muted">最小期望数 min(E)</div>
+          <div id="minE" class="num" style="font-size:22px;font-weight:700">—</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="title-sm">适用性检查</div>
+      <div id="checks" class="grid"></div>
+      <div class="muted" style="margin-top:6px">推荐：<span id="rec" class="pill">—</span></div>
+    </div>
+    <div class="card">
+      <div class="title-sm">检验结果</div>
+      <div class="grid">
+        <div><b>方法：</b><span id="methodLabel">—</span> <span id="override" class="muted" style="font-size:12px"></span></div>
+        <div><b>统计量：</b><span id="stat">—</span></div>
+        <div><b>P 值：</b><span id="pval">—</span></div>
+        <div class="muted" style="font-size:12px">当 P ≤ 0.05 时，拒绝原假设（行与列独立/无关联）。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid cols-2" style="margin-top:16px">
+    <div class="card">
+      <div class="title-sm">期望数 E 与单元格贡献 ((O−E)²/E)</div>
+      <div id="expTable"></div>
+    </div>
+    <div class="card">
+      <div class="grid cols-2">
+        <div>
+          <div class="title-sm">行合计</div>
+          <div id="rowSums"></div>
+        </div>
+        <div>
+          <div class="title-sm">列合计</div>
+          <div id="colSums"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="title-sm">教学提示</div>
+    <ul>
+      <li>页面展示 O、E 与贡献值，帮助理解 χ² 的逐单元格累加。</li>
+      <li>2×2 情形会在样本不足或期望过小时切换至 Yates 或 Fisher。</li>
+      <li>r×c 若出现 E&lt;5 或 E&lt;1 会给出告警（建议合并类别或使用精确/置换检验）。</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+// ===== 数学工具（Gamma/卡方CDF/超几何） =====
+function gammaln(z){
+  const cof=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.001208650973866179,-0.000005395239384953];
+  let x=z,y=x;let tmp=x+5.5;tmp-=(x+0.5)*Math.log(tmp);let ser=1.000000000190015;
+  for(let j=0;j<cof.length;j++) ser+=cof[j]/++y;
+  return -tmp+Math.log(2.5066282746310005*ser/x);
+}
+// 正则化下不完全Gamma P(a,x)
+function gammap(a,x){
+  if(x<=0) return 0;
+  if(x<a+1){
+    let ap=a,sum=1/a,del=sum;
+    for(let n=1;n<=100;n++){ap+=1;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*1e-14) break;}
+    return sum*Math.exp(-x+a*Math.log(x)-gammaln(a));
+  }else{
+    let b=x+1-a,c=1/1e-30,d=1/b,h=d;
+    for(let i=1;i<=100;i++){
+      let an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-30) d=1e-30;
+      c=b+an/c;if(Math.abs(c)<1e-30) c=1e-30;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-14) break;
+    }
+    return 1-Math.exp(-x+a*Math.log(x)-gammaln(a))*h;
+  }
+}
+function chi2cdf(x,k){return gammap(k/2,x/2);}
+
+// Fisher 2x2: 超几何 + 双侧
+function logChoose(N,K){ if(K<0||K>N) return -Infinity; return gammaln(N+1)-gammaln(K+1)-gammaln(N-K+1); }
+function hypergeomP(a,r1,c1,n){
+  const b=r1-a, c=c1-a, d=n-r1-c1+a;
+  if([a,b,c,d].some(v=>v<0)) return 0;
+  const logp = logChoose(c1,a)+logChoose(n-c1,r1-a)-logChoose(n,r1);
+  return Math.exp(logp);
+}
+function fisherExact2x2(obs){
+  const r1=obs[0][0]+obs[0][1], r2=obs[1][0]+obs[1][1];
+  const c1=obs[0][0]+obs[1][0], c2=obs[0][1]+obs[1][1];
+  const n=r1+r2, aObs=obs[0][0];
+  const pObs=hypergeomP(aObs,r1,c1,n);
+  const aMin=Math.max(0,r1-c2), aMax=Math.min(r1,c1);
+  let pTwo=0;
+  for(let a=aMin;a<=aMax;a++){
+    const p=hypergeomP(a,r1,c1,n);
+    if(p<=pObs+1e-12) pTwo+=p;
+  }
+  return {pTwo,pObs};
+}
+
+// ===== 统计计算 =====
+function expectedCounts(obs){
+  const r=obs.length, c=obs[0].length;
+  const rowSums=obs.map(row=>row.reduce((a,b)=>a+b,0));
+  const colSums=Array.from({length:c},(_,j)=>obs.reduce((a,row)=>a+row[j],0));
+  const n=rowSums.reduce((a,b)=>a+b,0);
+  const E=obs.map((row,i)=>row.map((_,j)=> n? (rowSums[i]*colSums[j])/n : 0 ));
+  return {E,rowSums,colSums,n};
+}
+function chiSquareStatistic(obs,E){
+  let chi2=0, contrib=obs.map((row,i)=>row.map((O,j)=>{const v=E[i][j]? ((O-E[i][j])**2)/E[i][j]:0; chi2+=v; return v;}));
+  return {chi2,contrib};
+}
+function chiSquareYates2x2(obs){
+  const a=obs[0][0], b=obs[0][1], c=obs[1][0], d=obs[1][1];
+  const n=a+b+c+d, num=Math.abs(a*d-b*c)-0.5*n, denom=(a+b)*(c+d)*(a+c)*(b+d);
+  const v= denom? (n*num*num)/denom : 0; return v<0?0:v;
+}
+function chiSquare2x2Special(obs){
+  const a=obs[0][0], b=obs[0][1], c=obs[1][0], d=obs[1][1];
+  const n=a+b+c+d, num=(a*d-b*c)**2 * n, denom=(a+b)*(c+d)*(a+c)*(b+d);
+  return denom? num/denom : 0;
+}
+function minExpected(E){
+  let m=Infinity; for(let i=0;i<E.length;i++) for(let j=0;j<E[0].length;j++) m=Math.min(m,E[i][j]); return m;
+}
+
+// ===== UI & 交互 =====
+const elRows=document.getElementById('rows');
+const elCols=document.getElementById('cols');
+const elMethod=document.getElementById('method');
+const wrap=document.getElementById('tableWrap');
+
+let r=2,c=2;
+let obs = Array.from({length:r},()=>Array.from({length:c},()=>10));
+
+function renderTable(){
+  wrap.innerHTML='';
+  const table=document.createElement('table');
+  const thead=document.createElement('thead');
+  const trh=document.createElement('tr');
+  trh.appendChild(document.createElement('th'));
+  for(let j=0;j<c;j++){const th=document.createElement('th');th.textContent='列'+(j+1);trh.appendChild(th);}
+  thead.appendChild(trh); table.appendChild(thead);
+  const tbody=document.createElement('tbody');
+  for(let i=0;i<r;i++){const tr=document.createElement('tr');const th=document.createElement('th');th.textContent='行'+(i+1);tr.appendChild(th);
+    for(let j=0;j<c;j++){const td=document.createElement('td');const inp=document.createElement('input');inp.type='number';inp.min='0';inp.step='1';inp.value=obs[i][j];
+      inp.style.width='80px';inp.style.textAlign='right';inp.style.padding='6px 8px';inp.style.border='1px solid var(--border)';inp.style.borderRadius='12px';
+      inp.addEventListener('input',e=>{const v=Math.max(0,Math.floor(Number(e.target.value)||0)); obs[i][j]=v; compute();});
+      td.appendChild(inp); tr.appendChild(td);}
+    tbody.appendChild(tr);
+  }
+  table.appendChild(tbody);
+  wrap.appendChild(table);
+}
+
+function ensureSize(newR,newC){
+  const next=Array.from({length:newR},(_,i)=>Array.from({length:newC},(_,j)=> (obs[i]?.[j] ?? 0)));
+  obs=next; r=newR; c=newC;
+}
+
+function decideMethod(n,minE,is2x2){
+  if(is2x2){
+    if(n<40 || minE<1) return 'fisher';
+    if(n>=40 && minE>=5) return 'pearson_or_special';
+    if(n>=40 && minE>=1 && minE<5) return 'yates';
+  }else{
+    if(n>=40 && minE>=5) return 'pearson_rc';
+    if(minE<1) return 'invalid_rc';
+    return 'caution_rc';
+  }
+  return 'pearson_rc';
+}
+
+function numberFmt(x, digits=3){
+  if(!isFinite(x)) return '—';
+  return (+x).toFixed(digits);
+}
+
+function compute(){
+  const {E,rowSums,colSums,n} = expectedCounts(obs);
+  const df=(r-1)*(c-1);
+  const {chi2,contrib}=chiSquareStatistic(obs,E);
+  const minEVal = isFinite(minExpected(E))? minExpected(E) : 0;
+  // 更新顶部汇总
+  document.getElementById('n').textContent = n;
+  document.getElementById('df').textContent = df;
+  document.getElementById('minE').textContent = numberFmt(minEVal);
+  // 适用性检查
+  const checks=document.getElementById('checks');
+  const countLT5 = E.flat().filter(v=>v<5).length;
+  checks.innerHTML = ''
+    + `<div><span class="dot ${n>=40?'green':'red'}"></span> n ≥ 40</div>`
+    + `<div><span class="dot ${minEVal>=5?'green':'yellow'}"></span> 所有 E ≥ 5（有 ${countLT5} 个 E<5）</div>`
+    + `<div><span class="dot ${minEVal>=1?'green':'red'}"></span> 无 E < 1</div>`;
+  // 推荐方法
+  const decision = decideMethod(n,minEVal,(r===2 && c===2));
+  const decisionText={
+    pearson_or_special:'2×2 Pearson χ²（或专用公式）',
+    yates:'2×2 Yates 连续性校正',
+    fisher:'2×2 Fisher 确切概率',
+    pearson_rc:'r×c Pearson χ²',
+    caution_rc:'r×c：存在 E<5，谨慎使用χ²或合并类别',
+    invalid_rc:'r×c：存在 E<1，χ²不适用'
+  }[decision];
+  document.getElementById('rec').textContent=decisionText;
+  // 选择方法
+  let used = elMethod.value==='auto' ? decision : elMethod.value;
+  let methodLabel='—', statVal=null, p=null;
+  if(r===2 && c===2){
+    if(used==='fisher'){
+      const {pTwo}=fisherExact2x2(obs);
+      methodLabel='Fisher 确切概率（双侧）'; p=pTwo;
+    }else if(used==='yates'){
+      const v=chiSquareYates2x2(obs); methodLabel='2×2 连续性校正的 χ² (Yates)'; statVal=v; p=1-chi2cdf(v,1);
+    }else if(used==='special'){
+      const v=chiSquare2x2Special(obs); methodLabel='2×2 专用公式的 χ²'; statVal=v; p=1-chi2cdf(v,1);
+    }else{ // pearson
+      methodLabel='Pearson χ²'; statVal=chi2; p=1-chi2cdf(statVal,1);
+    }
+  }else{
+    methodLabel='Pearson χ² (r×c)'; statVal=chi2; p=1-chi2cdf(statVal,df);
+  }
+  document.getElementById('methodLabel').textContent = methodLabel;
+  document.getElementById('override').textContent = (elMethod.value!=='auto')? '（已手动覆盖推荐方法）':'';
+  document.getElementById('stat').textContent = (statVal===null? '—' : ('χ² = '+ numberFmt(statVal,4)));
+  document.getElementById('pval').textContent = (p===null? '—' : (p.toPrecision(5)));
+  // 期望与贡献表
+  const expWrap=document.getElementById('expTable'); expWrap.innerHTML='';
+  const t=document.createElement('table'); const th=document.createElement('thead'); const thr=document.createElement('tr');
+  thr.appendChild(document.createElement('th'));
+  for(let j=0;j<c;j++){const h=document.createElement('th');h.textContent='列'+(j+1);thr.appendChild(h);} th.appendChild(thr); t.appendChild(th);
+  const tb=document.createElement('tbody');
+  for(let i=0;i<r;i++){const tr=document.createElement('tr');const h=document.createElement('th');h.textContent='行'+(i+1);tr.appendChild(h);
+    for(let j=0;j<c;j++){const td=document.createElement('td');td.className='right mono';td.textContent=numberFmt(E[i][j])+'  |  '+numberFmt(contrib[i][j]); tr.appendChild(td);}
+    tb.appendChild(tr);
+  }
+  t.appendChild(tb); expWrap.appendChild(t);
+  // 行列合计
+  const rowDiv=document.getElementById('rowSums'); const colDiv=document.getElementById('colSums');
+  rowDiv.innerHTML=''; colDiv.innerHTML='';
+  const tr1=document.createElement('table'); const tb1=document.createElement('tbody');
+  for(let i=0;i<r;i++){const tr=document.createElement('tr');const thd=document.createElement('th');thd.textContent='行'+(i+1);const td=document.createElement('td');td.textContent=rowSums[i];
+    tr.appendChild(thd); tr.appendChild(td); tb1.appendChild(tr);} tr1.appendChild(tb1); rowDiv.appendChild(tr1);
+  const tr2=document.createElement('table'); const tb2=document.createElement('tbody'); const trc=document.createElement('tr'); trc.appendChild(document.createElement('th'));
+  for(let j=0;j<c;j++){const thd=document.createElement('th');thd.textContent='列'+(j+1); trc.appendChild(thd);} tb2.appendChild(trc);
+  const trv=document.createElement('tr'); const thv=document.createElement('th');thv.textContent='合计'; trv.appendChild(thv);
+  for(let j=0;j<c;j++){const td=document.createElement('td');td.textContent=colSums[j]; trv.appendChild(td);} tb2.appendChild(trv);
+  tr2.appendChild(tb2); colDiv.appendChild(tr2);
+}
+
+function randomize(){
+  for(let i=0;i<r;i++) for(let j=0;j<c;j++) obs[i][j]=Math.floor(Math.random()*20);
+  renderTable(); // 修复：刷新输入表格
+  compute();
+}
+function strong(){
+  for(let i=0;i<r;i++) for(let j=0;j<c;j++) obs[i][j]=(i===j?15:3);
+  renderTable(); // 修复：刷新输入表格
+  compute();
+}
+function zero(){
+  for(let i=0;i<r;i++) for(let j=0;j<c;j++) obs[i][j]=0;
+  renderTable(); // 修复：刷新输入表格
+  compute();
+}
+
+elRows.addEventListener('input',e=>{const v=Math.max(2,Math.min(8,parseInt(e.target.value)||2)); elRows.value=v; ensureSize(v,c); renderTable(); compute();});
+elCols.addEventListener('input',e=>{const v=Math.max(2,Math.min(8,parseInt(e.target.value)||2)); elCols.value=v; ensureSize(r,v); renderTable(); compute();});
+elMethod.addEventListener('change',()=>compute());
+document.getElementById('btnRnd').addEventListener('click',randomize);
+document.getElementById('btnStrong').addEventListener('click',strong);
+document.getElementById('btnZero').addEventListener('click',zero);
+
+renderTable(); compute();
+</script>
+</body>
+</html>
