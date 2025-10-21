@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>医学统计学互动实验导航 | Medical Statistics Lab Portal</title>
+  <style>
+    body {font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;background:linear-gradient(to right,#eef2f3,#d9e2ec);text-align:center;margin:0;padding:40px;color:#333;}
+    h1 {color:#004578;font-size:28px;margin-bottom:10px;}
+    h2 {color:#666;font-size:18px;font-weight:normal;margin-bottom:40px;}
+    .grid {display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:900px;margin:0 auto;}
+    .card {background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:24px;transition:transform .2s,box-shadow .2s;}
+    .card:hover {transform:translateY(-4px);box-shadow:0 6px 14px rgba(0,0,0,0.15);}
+    .card h3 {color:#004578;margin-bottom:8px;}
+    footer {margin-top:50px;color:#777;font-size:14px;}
+  </style>
+</head>
+<body>
+  <h1>医学统计学互动实验导航</h1>
+  <h2>Medical Statistics Interactive Teaching Labs</h2>
+
+  <div class="grid" id="labGrid">正在加载实验列表...</div>
+
+  <footer>© 2025 Zhentic Cui | Zhengzhou Sias University</footer>
+
+  <script>
+    // 你的 GitHub Pages 仓库路径
+    const repo = "https://zhentic.github.io/Medicalstatistic/";
+
+    // 预定义中英文标题映射
+    const mapping = {
+      "chi_square_lab.html": "📊 卡方检验 (Chi-Square Test)",
+      "t_distribution_demo_fixed.html": "📈 t 检验演示 (T-Test)",
+      "normal_distribution.html": "🔔 正态分布 (Normal Distribution)",
+      "Parameter Estimator_Medical Statistics.html": "📐 参数估计 (Parameter Estimation)",
+      "OLS Linear Regression_Interactive Teaching Lab.html": "📉 线性回归 (OLS Regression)",
+      "动态置信区间演示.html": "🎞 动态置信区间 (Dynamic CI Demo)"
+    };
+
+    async function loadFiles() {
+      try {
+        // 从 GitHub API 获取文件列表
+        const res = await fetch("https://api.github.com/repos/zhentic/Medicalstatistic/contents");
+        const data = await res.json();
+
+        const grid = document.getElementById("labGrid");
+        grid.innerHTML = "";
+
+        data.filter(f => f.name.endsWith(".html") && f.name !== "index.html")
+            .forEach(file => {
+              const title = mapping[file.name] || "📘 " + file.name.replace(".html", "");
+              const card = document.createElement("a");
+              card.href = repo + file.name;
+              card.innerHTML = `<div class='card'><h3>${title}</h3></div>`;
+              grid.appendChild(card);
+            });
+      } catch (err) {
+        document.getElementById("labGrid").innerText = "无法加载文件列表，请稍后重试。";
+      }
+    }
+    loadFiles();
+  </script>
+</body>
+</html>
