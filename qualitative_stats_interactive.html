@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>定性数据的统计描述｜互动教学站</title>
+  <style>
+    :root{
+      --bg:#0b1020; --card:#121a33; --muted:#8fa3d8; --text:#e7ecff; --brand:#7aa2ff; --accent:#86efac;
+      --danger:#fda4af; --warn:#fde68a; --ok:#a7f3d0;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Noto Sans",sans-serif;background:linear-gradient(180deg,#0b1020,#0b1020 60%,#0e1430);color:var(--text)}
+    header{position:sticky;top:0;background:rgba(11,16,32,.7);backdrop-filter:saturate(160%) blur(10px);border-bottom:1px solid rgba(255,255,255,.06);z-index:50}
+    nav{max-width:1100px;margin:auto;display:flex;gap:12px;align-items:center;padding:12px 16px}
+    nav a{color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:10px}
+    nav a:hover{background:rgba(122,162,255,.12);color:#cfe0ff}
+    .brand{font-weight:700;color:#cfe0ff;margin-right:auto;letter-spacing:.3px}
+    main{max-width:1100px;margin:28px auto;padding:0 16px 60px}
+    h1{font-size:clamp(24px,2.6vw,36px);margin:8px 0 16px}
+    h2{margin:24px 0 12px;font-size:clamp(20px,2.2vw,28px)}
+    h3{margin:18px 0 10px}
+    p.lead{color:#cfe0ff;opacity:.9}
+    .grid{display:grid;gap:16px}
+    @media(min-width:900px){.grid.cols-2{grid-template-columns:1.2fr .8fr}.grid.cols-3{grid-template-columns:repeat(3,1fr)}}
+    .card{background:linear-gradient(180deg,var(--card),#0c1430);border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .card .hd{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px}
+    .pill{font-size:12px;color:#0b1020;background:var(--accent);padding:2px 8px;border-radius:999px;font-weight:700}
+    .card .bd{padding:14px 16px}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input,select{background:#0b1433;color:#e8eeff;border:1px solid rgba(255,255,255,.1);padding:10px 12px;border-radius:12px}
+    label{font-size:13px;color:#cdd8ff}
+    .kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+    .kpi .box{background:#0a132c;border:1px dashed rgba(255,255,255,.12);border-radius:12px;padding:10px}
+    .kpi .val{font-weight:800;font-size:22px}
+    canvas,svg{width:100%;height:340px;background:#0a1228;border-radius:12px}
+    .tip{font-size:12px;color:#a9b8ff}
+    .btn{display:inline-flex;align-items:center;gap:8px;background:#16244d;color:#dce6ff;border:1px solid rgba(255,255,255,.08);padding:10px 14px;border-radius:12px;cursor:pointer}
+    .btn:hover{background:#1a2a59}
+    details{background:#0a132c;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 12px}
+    summary{cursor:pointer;color:#cfe0ff}
+    footer{max-width:1100px;margin:40px auto 80px;color:#93a8e9;padding:0 16px}
+    code{background:#0b1433;border:1px solid rgba(255,255,255,.08);padding:2px 6px;border-radius:8px}
+  </style>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <header>
+    <nav>
+      <div class="brand">定性数据的统计描述 · 互动课件</div>
+      <a href="#relative">常用相对数</a>
+      <a href="#epi">医学常用指标</a>
+      <a href="#std">标准化率</a>
+      <a href="#charts">统计图</a>
+      <a href="#practice">练一练</a>
+    </nav>
+  </header>
+
+  <main>
+    <section>
+      <h1>定性数据（分类变量）的统计描述</h1>
+      <p class="lead">本页将课堂要点做成可视化交互：<b>率（rate）</b>、<b>构成比（proportion）</b>、<b>相对比（relative ratio）</b>，以及流行病学中的 <b>发病率/患病率/死亡率</b>、<b>相对危险度 RR</b>、<b>比数比 OR</b>、<b>标准化率</b>。每个模块都可输入你的数据，立即看到图形与指标。</p>
+      <details style="margin-top:10px"><summary>如何使用？</summary>
+        <ul>
+          <li>在每个小工具中，输入分子/分母或2×2表格的数据；</li>
+          <li>下方 KPI 卡会自动计算；右侧图会即时更新；</li>
+          <li>左下角 <code>示例</code> 按钮会填入与课堂讲义一致的案例。</li>
+        </ul>
+      </details>
+    </section>
+
+    <!-- 常用相对数：率 / 构成比 / 相对比 -->
+    <section id="relative" class="grid cols-2" style="margin-top:18px">
+      <div class="card">
+        <div class="hd"><span class="pill">RATE / PROPORTION / RATIO</span><strong>常用相对数</strong></div>
+        <div class="bd">
+          <div class="row">
+            <div>
+              <label>实际发生数（分子）</label><br>
+              <input id="num" type="number" value="12" min="0">
+            </div>
+            <div>
+              <label>可能发生总数（分母）</label><br>
+              <input id="den" type="number" value="3128" min="1">
+            </div>
+            <div>
+              <label>比例基数</label><br>
+              <select id="base">
+                <option value="100">百分率（%）</option>
+                <option value="1000" selected>千分率（‰）</option>
+                <option value="10000">万分率（1/万）</option>
+                <option value="100000">十万分率（1/10万）</option>
+              </select>
+            </div>
+          </div>
+          <div class="kpi" style="margin-top:10px">
+            <div class="box"><div class="muted">率</div><div class="val" id="rateVal">—</div><div class="tip">= 分子/分母 × 基数</div></div>
+            <div class="box"><div class="muted">构成比</div><div class="val" id="propVal">—</div><div class="tip">= 分子/分母 × 100%</div></div>
+            <div class="box"><div class="muted">相对比（A/B）</div><div class="val" id="ratioVal">—</div><div class="tip">比较两个相关指标的倍数或百分比</div></div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn" onclick="loadRateExample()">填入示例（高血压发病率）</button>
+            <button class="btn" onclick="swapAB()">相对比：交换 A/B</button>
+          </div>
+          <details style="margin-top:10px"><summary>课堂要点</summary>
+            <ul>
+              <li>率强调时间或空间范围内<strong>发生强度/频度</strong>；</li>
+              <li>构成比刻画<strong>内部构成</strong>；</li>
+              <li>相对比用于<strong>对比水平</strong>（如不同时间、地区或两指标）。</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><span class="pill">CHART</span><strong>条形图 / 百分条（可切换）</strong></div>
+        <div class="bd">
+          <div class="row" style="justify-content:space-between;align-items:center">
+            <label><input type="checkbox" id="stackedToggle"> 使用 100% 百分条</label>
+            <div class="tip">用于呈现构成或两指标对比</div>
+          </div>
+          <canvas id="rateChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- 医学常用指标：发病率/患病率/死亡率 + RR/OR -->
+    <section id="epi" style="margin-top:22px" class="grid cols-2">
+      <div class="card">
+        <div class="hd"><span class="pill">EPID INDICATORS</span><strong>2×2 表：RR 与 OR 计算</strong></div>
+        <div class="bd">
+          <div class="row">
+            <table style="border-collapse:collapse;border:1px solid rgba(255,255,255,.12)">
+              <thead>
+                <tr><th></th><th style="padding:6px 10px">病例（Disease）</th><th style="padding:6px 10px">非病例</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="padding:6px 10px">暴露（Exposed）</td>
+                  <td style="padding:6px 10px"><input id="a" type="number" min="0" value="40" style="width:90px"></td>
+                  <td style="padding:6px 10px"><input id="b" type="number" min="0" value="60" style="width:90px"></td>
+                </tr>
+                <tr>
+                  <td style="padding:6px 10px">未暴露（Unexposed）</td>
+                  <td style="padding:6px 10px"><input id="c" type="number" min="0" value="20" style="width:90px"></td>
+                  <td style="padding:6px 10px"><input id="d" type="number" min="0" value="80" style="width:90px"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="kpi" style="margin-top:10px">
+            <div class="box"><div class="muted">风险暴露组</div><div class="val" id="risk1">—</div><div class="tip">a/(a+b)</div></div>
+            <div class="box"><div class="muted">风险未暴露组</div><div class="val" id="risk0">—</div><div class="tip">c/(c+d)</div></div>
+            <div class="box"><div class="muted">相对危险度 RR</div><div class="val" id="rr">—</div><div class="tip">[a/(a+b)] / [c/(c+d)]</div></div>
+          </div>
+          <div class="kpi" style="margin-top:10px">
+            <div class="box"><div class="muted">优势暴露组</div><div class="val" id="odds1">—</div><div class="tip">a/b</div></div>
+            <div class="box"><div class="muted">优势未暴露组</div><div class="val" id="odds0">—</div><div class="tip">c/d</div></div>
+            <div class="box"><div class="muted">比数比 OR</div><div class="val" id="or">—</div><div class="tip">(a·d)/(b·c)</div></div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <button class="btn" onclick="loadRRExample()">填入示例（肺癌×饮酒）</button>
+            <button class="btn" onclick="swapExposure()">交换 暴露/未暴露</button>
+          </div>
+          <details style="margin-top:10px"><summary>课堂要点</summary>
+            <ul>
+              <li>RR 常用于队列研究；OR 多用于病例-对照研究；</li>
+              <li>当结局罕见时，OR ≈ RR；</li>
+              <li>解读：RR（或 OR）>1 提示危险因素；<1 提示保护因素。</li>
+            </ul>
+          </details>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><span class="pill">CHART</span><strong>马赛克图（2×2 构成）</strong></div>
+        <div class="bd">
+          <canvas id="mosaic"></canvas>
+          <div class="tip" style="margin-top:8px">面积表示人数（或频数），可直观看到暴露与疾病的关联构成。</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 标准化率：直接法（教学演示） -->
+    <section id="std" style="margin-top:22px" class="grid cols-2">
+      <div class="card">
+        <div class="hd"><span class="pill">STANDARDIZATION</span><strong>标准化率（直接法）</strong></div>
+        <div class="bd">
+          <p class="muted" style="margin-top:0">输入各分层（如科室/年龄组）的 <b>组内率</b> 与 <b>标准人口构成</b>，系统将计算标准化率并与粗率对比。</p>
+          <div id="strataRows"></div>
+          <div class="row" style="margin-top:8px">
+            <button class="btn" onclick="addStratum()">+ 增加一行</button>
+            <button class="btn" onclick="loadStdExample()">填入示例（甲乙医院）</button>
+          </div>
+          <div class="kpi" style="margin-top:10px">
+            <div class="box"><div class="muted">粗率（甲）</div><div class="val" id="crudeA">—</div><div class="tip">合计治愈数/合计人数 × 100%</div></div>
+            <div class="box"><div class="muted">粗率（乙）</div><div class="val" id="crudeB">—</div><div class="tip">合计治愈数/合计人数 × 100%</div></div>
+            <div class="box"><div class="muted">标准化率差</div><div class="val" id="stdDiff">—</div><div class="tip">直接法：∑(标准构成×组率)</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><span class="pill">CHART</span><strong>粗率 vs 标准化率</strong></div>
+        <div class="bd">
+          <canvas id="stdChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- 统计图演示（定性数据） -->
+    <section id="charts" style="margin-top:22px" class="grid cols-3">
+      <div class="card">
+        <div class="hd"><span class="pill">BAR</span><strong>条形图：类别构成</strong></div>
+        <div class="bd">
+          <div class="row">
+            <input id="cats" value="A:40,B:35,C:25" style="flex:1"/>
+            <button class="btn" onclick="updateBar()">绘制</button>
+          </div>
+          <canvas id="barChart"></canvas>
+          <div class="tip">输入格式：<code>类别:频数</code>，用英文逗号分隔。</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><span class="pill">STACKED</span><strong>百分条图：两组比较</strong></div>
+        <div class="bd">
+          <div class="row">
+            <input id="grp1" value="治愈:60,好转:30,无效:10" style="flex:1"/>
+            <input id="grp2" value="治愈:55,好转:35,无效:10" style="flex:1"/>
+            <button class="btn" onclick="updateStacked()">绘制</button>
+          </div>
+          <canvas id="stackedChart"></canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="hd"><span class="pill">PIE</span><strong>圆图：类别占比</strong></div>
+        <div class="bd">
+          <div class="row">
+            <input id="pieData" value="阳性:42,阴性:58" style="flex:1"/>
+            <button class="btn" onclick="updatePie()">绘制</button>
+          </div>
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- 练习区 -->
+    <section id="practice" style="margin-top:22px">
+      <div class="card">
+        <div class="hd"><span class="pill">PRACTICE</span><strong>快速自测</strong></div>
+        <div class="bd">
+          <ol>
+            <li>某年某校新发水痘 18 例，学生总数 4200。计算发病率（‰），并绘制条形图展示“发病/未发病”构成。</li>
+            <li>某市男性吸烟者肺癌 120/780，非吸烟者 60/840。计算 RR 与 OR，并用马赛克图解释。</li>
+            <li>两医院三科室治愈率比较：输入分层数据，比较粗率与标准化率结论是否一致，思考原因（辛普森悖论）。</li>
+          </ol>
+          <p class="tip">提示：上面的小工具即可完成全部计算与作图。</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© <span id="yr"></span> 定性数据统计描述 · 互动教学 | 作者：Zhenti CUI | 课程网站用 | 本页为静态 HTML，可直接部署到 GitHub Pages。
+      <br>如需在手机上引导：<em>导航栏 → 模块 → 输入数据 → 即时出图</em>。</p>
+  </footer>
+
+<script>
+  const $ = (s)=>document.querySelector(s);
+  const fmtP = (x)=> isFinite(x) ? (x*100).toFixed(2)+'%' : '—';
+  const fmtR = (x)=> isFinite(x) ? x.toFixed(3) : '—';
+  const clamp01=(x)=>Math.max(0,Math.min(1,x));
+  document.getElementById('yr').textContent=new Date().getFullYear();
+
+  // ======= 常用相对数 =======
+  let rateChart;
+  function recalcRate(){
+    const num=+$('#num').value||0, den=+$('#den').value||1, base=+$('#base').value||100;
+    const rate = num/den*base;
+    const prop = num/den;
+    const other = den-num;
+    const ratio = den>0? num/other: NaN;
+    $('#rateVal').textContent = isFinite(rate)? fmtR(rate): '—';
+    $('#propVal').textContent = fmtP(prop);
+    $('#ratioVal').textContent = isFinite(ratio)? fmtR(ratio): '—';
+
+    const stacked = $('#stackedToggle').checked;
+    const dataA = stacked? [prop*100, (1-prop)*100] : [num, other];
+    const labels = stacked? ['发生(%)','未发生(%)'] : ['发生','未发生'];
+    const dsLabel = stacked? '构成（%）' : '频数';
+    const cfg={
+      type:'bar',
+      data:{labels, datasets:[{label:dsLabel, data:dataA}]},
+      options:{responsive:true, scales:{x:{stacked:stacked}, y:{beginAtZero:true, stacked:stacked}}, plugins:{legend:{display:false}}}
+    };
+    if(rateChart){ rateChart.destroy(); }
+    rateChart=new Chart($('#rateChart'), cfg);
+  }
+  ['num','den','base','stackedToggle'].forEach(id=> $('#'+id).addEventListener('input', recalcRate));
+  function loadRateExample(){ $('#num').value=12; $('#den').value=3128; $('#base').value=1000; $('#stackedToggle').checked=false; recalcRate(); }
+  function swapAB(){ const num=+$('#num').value, den=+$('#den').value; const other=den-num; $('#num').value=other; recalcRate(); }
+
+  // ======= RR / OR & Mosaic =======
+  let mosaicChart;
+  function recalcRROR(){
+    let a=+$('#a').value||0, b=+$('#b').value||0, c=+$('#c').value||0, d=+$('#d').value||0;
+    const risk1 = (a+b)>0 ? a/(a+b) : NaN;
+    const risk0 = (c+d)>0 ? c/(c+d) : NaN;
+    const rr = (isFinite(risk1) && isFinite(risk0) && risk0>0) ? risk1/risk0 : NaN;
+    const odds1 = b>0 ? a/b : NaN;
+    const odds0 = d>0 ? c/d : NaN;
+    const or = (b>0 && c>0) ? (a*d)/(b*c) : NaN;
+    $('#risk1').textContent = fmtP(risk1);
+    $('#risk0').textContent = fmtP(risk0);
+    $('#rr').textContent = fmtR(rr);
+    $('#odds1').textContent = isFinite(odds1)? fmtR(odds1): '—';
+    $('#odds0').textContent = isFinite(odds0)? fmtR(odds0): '—';
+    $('#or').textContent = isFinite(or)? fmtR(or): '—';
+
+    // Mosaic: 2×2 stacked bars (Exposed vs Unexposed), showing Disease/No-Disease proportions
+    const eTot=a+b, uTot=c+d;
+    const eP = eTot>0? a/eTot*100:0, eN= eTot>0? b/eTot*100:0;
+    const uP = uTot>0? c/uTot*100:0, uN= uTot>0? d/uTot*100:0;
+    const cfg={type:'bar', data:{labels:['暴露','未暴露'], datasets:[
+      {label:'病例', data:[eP, uP], stack:'stack1'},
+      {label:'非病例', data:[eN, uN], stack:'stack1'}
+    ]}, options:{responsive:true, scales:{x:{stacked:true}, y:{beginAtZero:true, stacked:true, max:100}}, plugins:{legend:{position:'bottom'}}}};
+    if(mosaicChart){ mosaicChart.destroy(); }
+    mosaicChart=new Chart($('#mosaic'), cfg);
+  }
+  ['a','b','c','d'].forEach(id=> $('#'+id).addEventListener('input', recalcRROR));
+  function loadRRExample(){ $('#a').value=30; $('#b').value=70; $('#c').value=15; $('#d').value=85; recalcRROR(); }
+  function swapExposure(){ const a=$('#a').value, b=$('#b').value, c=$('#c').value, d=$('#d').value; $('#a').value=c; $('#b').value=d; $('#c').value=a; $('#d').value=b; recalcRROR(); }
+
+  // ======= 标准化率（直接法演示） =======
+  let stdChart;
+  function addStratum(name='', rateA='', nA='', rateB='', nB='', stdW=''){
+    const id = Math.random().toString(36).slice(2,7);
+    const row = document.createElement('div');
+    row.className='row';
+    row.style.marginTop='6px';
+    row.innerHTML=`
+      <input placeholder="分层名称" value="${name}">
+      <input class="rateA" placeholder="甲：该层率(%)" value="${rateA}">
+      <input class="nA" placeholder="甲：该层人数" value="${nA}">
+      <input class="rateB" placeholder="乙：该层率(%)" value="${rateB}">
+      <input class="nB" placeholder="乙：该层人数" value="${nB}">
+      <input class="stdW" placeholder="标准人口构成(%)" value="${stdW}">
+      <button class="btn" onclick="this.parentElement.remove(); recalcStd()">删除</button>
+    `;
+    $('#strataRows').appendChild(row);
+    Array.from(row.querySelectorAll('input')).forEach(inp=> inp.addEventListener('input', recalcStd));
+  }
+  function recalcStd(){
+    const rows = Array.from($('#strataRows').children);
+    let totA=0, cureA=0, totB=0, cureB=0; // 用于粗率
+    let stdA=0, stdB=0, wSum=0;
+    rows.forEach(r=>{
+      const rateA=+r.querySelector('.rateA').value/100;
+      const nA=+r.querySelector('.nA').value;
+      const rateB=+r.querySelector('.rateB').value/100;
+      const nB=+r.querySelector('.nB').value;
+      const w=+r.querySelector('.stdW').value/100;
+      if(nA>0){ totA+=nA; cureA+=rateA*nA; }
+      if(nB>0){ totB+=nB; cureB+=rateB*nB; }
+      if(isFinite(w)){ stdA+=w*rateA; stdB+=w*rateB; wSum+=w; }
+    });
+    const crudeA = totA>0 ? cureA/totA : NaN;
+    const crudeB = totB>0 ? cureB/totB : NaN;
+    // 若标准权重未刚好和为1，则按权重占比归一
+    if(wSum>0){ stdA = stdA*(1/wSum); stdB = stdB*(1/wSum);} else { stdA=NaN; stdB=NaN; }
+    $('#crudeA').textContent = fmtP(crudeA);
+    $('#crudeB').textContent = fmtP(crudeB);
+    const diffTxt = (isFinite(stdA)&&isFinite(stdB))? `${(stdA*100).toFixed(2)}% vs ${(stdB*100).toFixed(2)}%`:'—';
+    $('#stdDiff').textContent = diffTxt;
+
+    const cfg={type:'bar', data:{labels:['粗率-甲','粗率-乙','标准化-甲','标准化-乙'], datasets:[{label:'治愈率(%)', data:[crudeA*100, crudeB*100, stdA*100, stdB*100]}]}, options:{responsive:true, scales:{y:{beginAtZero:true, max:100}}, plugins:{legend:{display:false}}}};
+    if(stdChart){ stdChart.destroy(); }
+    stdChart = new Chart($('#stdChart'), cfg);
+  }
+  function loadStdExample(){
+    $('#strataRows').innerHTML='';
+    // 示例：三科室，用课堂描述的“甲各科率更高，但构成不同导致总率更低”的情境
+    addStratum('内科', '70', '400', '60', '200', '50');
+    addStratum('外科', '90', '150', '80', '200', '30');
+    addStratum('儿科', '85', '50',  '75', '100', '20');
+    recalcStd();
+  }
+
+  // ======= 图形演示：条形 / 百分条 / 圆图 =======
+  let barChart, stackedChart, pieChart;
+  function parsePairs(str){
+    return str.split(',').map(s=>s.trim()).filter(Boolean).map(x=>{
+      const [k,v]=x.split(':'); return {k:k?.trim(), v:+(v||0)};
+    });
+  }
+  function updateBar(){
+    const pairs=parsePairs($('#cats').value);
+    const labels=pairs.map(p=>p.k), data=pairs.map(p=>p.v);
+    const cfg={type:'bar', data:{labels, datasets:[{label:'频数', data}]}, options:{responsive:true, scales:{y:{beginAtZero:true}}, plugins:{legend:{display:false}}}};
+    if(barChart){ barChart.destroy(); }
+    barChart=new Chart($('#barChart'), cfg);
+  }
+  function updateStacked(){
+    const g1=parsePairs($('#grp1').value), g2=parsePairs($('#grp2').value);
+    const labels=[...new Set([...g1.map(x=>x.k), ...g2.map(x=>x.k)])];
+    const tot1=g1.reduce((s,x)=>s+x.v,0)||1, tot2=g2.reduce((s,x)=>s+x.v,0)||1;
+    const d1=labels.map(l=>{const f=g1.find(x=>x.k===l); return f? f.v/tot1*100:0});
+    const d2=labels.map(l=>{const f=g2.find(x=>x.k===l); return f? f.v/tot2*100:0});
+    const cfg={type:'bar', data:{labels, datasets:[{label:'甲（%）', data:d1, stack:'s1'},{label:'乙（%）', data:d2, stack:'s2'}]}, options:{responsive:true, scales:{x:{stacked:true}, y:{beginAtZero:true, max:100, stacked:true}}, plugins:{legend:{position:'bottom'}}}};
+    if(stackedChart){ stackedChart.destroy(); }
+    stackedChart=new Chart($('#stackedChart'), cfg);
+  }
+  function updatePie(){
+    const pairs=parsePairs($('#pieData').value);
+    const labels=pairs.map(p=>p.k), data=pairs.map(p=>p.v);
+    const cfg={type:'pie', data:{labels, datasets:[{data}]}, options:{responsive:true}};
+    if(pieChart){ pieChart.destroy(); }
+    pieChart=new Chart($('#pieChart'), cfg);
+  }
+
+  // ======= 初始化 =======
+  loadRateExample();
+  recalcRROR();
+  loadStdExample();
+  updateBar();
+  updateStacked();
+  updatePie();
+</script>
+</body>
+</html>
