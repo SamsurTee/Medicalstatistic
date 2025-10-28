@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>定量数据统计描述 · Quantitative Descriptives</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <style>
+    :root{
+      --bg:#0b1020; --panel:#121830; --muted:#8aa0ff; --text:#e9edff; --acc:#6ee7b7;
+      --warn:#f59e0b; --danger:#ef4444; --ok:#22c55e; --card:#0f1428;
+    }
+    html,body{height:100%}
+    body{margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background:linear-gradient(180deg,#0a0f23 0%,#0b122a 100%); color:var(--text)}
+    .wrap{max-width:1200px; margin:0 auto; padding:24px}
+    header{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+    h1{font-weight:800; letter-spacing:.3px; margin:.2rem 0}
+    .sub{opacity:.85; font-size:.95rem}
+    .panel{background:var(--panel); border:1px solid #1f2852; border-radius:18px; padding:18px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .grid{display:grid; gap:14px}
+    .g-2{grid-template-columns:repeat(2,1fr)}
+    .g-3{grid-template-columns:repeat(3,1fr)}
+    @media (max-width:980px){.g-2,.g-3{grid-template-columns:1fr}}
+    label{font-weight:600; font-size:.92rem}
+    input[type="number"], input[type="text"], select, textarea{width:100%; background:#0e1530; color:var(--text); border:1px solid #1f2852; border-radius:12px; padding:10px 12px; outline:none}
+    textarea{min-height:120px; resize:vertical}
+    .btn{appearance:none; border:1px solid #27336b; background:#101a3a; color:var(--text); padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer}
+    .btn:hover{background:#0d1734}
+    .btn.primary{background:linear-gradient(90deg,#4654ff,#6f9cff); border-color:#4654ff}
+    .btn.ghost{background:transparent}
+    .kpi{display:grid; gap:10px; grid-template-columns:repeat(4,1fr)}
+    @media (max-width:980px){.kpi{grid-template-columns:repeat(2,1fr)}}
+    .card{background:var(--card); border:1px solid #1b2349; border-radius:16px; padding:14px}
+    .card h3{font-size:.95rem; margin:.2rem 0 .6rem; opacity:.9}
+    .stat{display:flex; align-items:baseline; justify-content:space-between}
+    .stat b{font-size:1.25rem}
+    .muted{color:var(--muted)}
+    .badge{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; border:1px solid #27336b; background:#0e1634; font-weight:700; font-size:.82rem}
+    .foot{opacity:.8; font-size:.9rem; margin-top:16px}
+    .chart{height:360px}
+    .tabs{display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap}
+    .tab{padding:8px 12px; border:1px solid #27336b; border-radius:10px; cursor:pointer; user-select:none}
+    .tab.active{background:#1a2450}
+    .help{font-size:.85rem; opacity:.9}
+    .pill{display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid #2b396e; color:#cdd7ff; font-size:.78rem}
+    code{background:#0f1735; border:1px solid #1f2852; padding:2px 6px; border-radius:6px}
+    .flex{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .right{margin-left:auto}
+    .danger{color:var(--danger)}
+    .pass{color:var(--ok); font-weight:700}
+    .fail{color:var(--danger); font-weight:700}
+    details summary{cursor:pointer}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>定量数据统计描述 · Quantitative Descriptive Statistics</h1>
+        <div class="sub">一页式教学网页（单文件 HTML）。支持粘贴/上传数据 → 自动计算指标 + 交互图（Histogram / Boxplot / ECDF / QQ）。</div>
+      </div>
+      <div class="flex right">
+        <button id="btnSelfTest" class="btn">运行自检</button>
+        <button id="btnExportStats" class="btn">导出结果 CSV</button>
+        <button id="btnExportPNG" class="btn">导出当前图 PNG</button>
+        <a id="btnReset" class="btn ghost" href="#">重置</a>
+      </div>
+    </header>
+
+    <section class="grid g-2">
+      <div class="panel">
+        <div class="grid g-3">
+          <div>
+            <label>数据来源 · Data Source</label>
+            <div class="flex">
+              <input type="file" id="file" accept=".csv,.txt"/>
+              <button class="btn" id="btnSampleNormal">示例：正态</button>
+              <button class="btn" id="btnSampleSkew">示例：偏态</button>
+            </div>
+            <div class="help">CSV 支持一列数值，或两列（第一列为数值，第二列为分组 Group）。也可直接在下方文本框粘贴一列或两列（用逗号/空格/换行分隔）。缺失值会被自动忽略。</div>
+          </div>
+          <div>
+            <label>变量名称</label>
+            <input id="varName" type="text" placeholder="例如：SBP (mmHg)"/>
+            <div class="help">用于图表标题与导出。</div>
+          </div>
+          <div>
+            <label>分箱规则 · Binning</label>
+            <select id="binRule">
+              <option value="sturges">Sturges（默认）</option>
+              <option value="fd">Freedman–Diaconis</option>
+              <option value="sqrt">√n</option>
+              <option value="manual">自定义</option>
+            </select>
+            <div class="flex" style="margin-top:6px">
+              <label class="pill">bins</label>
+              <input id="bins" type="number" min="3" max="200" step="1" placeholder="auto"/>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px">
+          <label>粘贴数据（可含可选分组列）</label>
+          <textarea id="raw" placeholder="72, A\n75, A\n68, B\n70, B\n…"></textarea>
+        </div>
+        <div class="flex" style="margin-top:10px">
+          <button class="btn primary" id="btnAnalyze">开始分析 Analyze</button>
+          <span class="badge">当前样本量 n = <b id="nShow">0</b></span>
+          <span class="badge">分组组数 Groups = <b id="gShow">1</b></span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="kpi" id="kpi"><div class="card">尚无数据，点击“示例”或粘贴数据后分析。</div></div>
+        <div class="foot help">说明：Mean/SD 为样本均值/标准差（n−1），Variance 为样本方差（n−1），Skewness/Kurtosis 为矩估计（kurtosis 为超额峰度）。95% CI 使用 t 分布。</div>
+      </div>
+    </section>
+
+    <section class="grid g-2" style="margin-top:14px">
+      <div class="panel">
+        <div class="tabs">
+          <div class="tab active" data-tab="hist">直方图 Histogram</div>
+          <div class="tab" data-tab="box">箱线图 Boxplot</div>
+          <div class="tab" data-tab="ecdf">ECDF</div>
+          <div class="tab" data-tab="qq">QQ 正态图</div>
+        </div>
+        <div id="chart" class="chart"></div>
+      </div>
+      <div class="panel">
+        <h3>结果解释 · Reading the Output</h3>
+        <ul>
+          <li><b>集中趋势</b>（Mean/Median/Mode）：均值受极端值影响更大；偏态时中位数更稳健。</li>
+          <li><b>离散程度</b>（SD/Variance/Range/IQR）：IQR = Q3 − Q1；CV% = SD/Mean×100。</li>
+          <li><b>形状</b>（Skewness/Kurtosis）：右偏 > 0；超额峰度 0 近似正态。</li>
+          <li><b>异常值</b>：Tukey 法：小于 Q1−1.5×IQR 或 大于 Q3+1.5×IQR。</li>
+          <li><b>正态性</b>：QQ 图接近对角线表示近似正态；系统性弯曲提示偏离正态。</li>
+          <li><b>分箱</b>：尝试不同规则（Sturges / FD / √n）观察直方图的稳定性。</li>
+        </ul>
+        <details>
+          <summary>展开：数据格式示例</summary>
+          <div class="grid g-2">
+            <div>
+              <div class="pill">单变量（1 列）</div>
+              <pre><code>72\n75\n68\n70\n…</code></pre>
+            </div>
+            <div>
+              <div class="pill">带分组（2 列）</div>
+              <pre><code>72, A\n75, A\n68, B\n70, B\n…</code></pre>
+            </div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:14px">
+      <h3>自检用例（Tests）</h3>
+      <div id="selfTests" class="help">点击上方“运行自检”按钮执行内置单元测试，验证均值/方差/分位数/正态分位近似等函数。</div>
+    </section>
+  </div>
+
+<script>
+// ---------- Utilities ----------
+const $ = (q)=>document.querySelector(q);
+const $$ = (q)=>Array.from(document.querySelectorAll(q));
+
+function parseFreeText(text){
+  // Accept numbers separated by comma/space/newline, optional second column as group
+  const rows = text.split(/\n+/).map(r=>r.trim()).filter(Boolean);
+  const vals = []; const groups = [];
+  for(const r of rows){
+    const parts = r.split(/[\s,;\t]+/).filter(Boolean);
+    if(parts.length===0) continue;
+    const first = String(parts[0]).trim();
+    if(first === '' || first.toLowerCase() === 'na') { continue; }
+    const x = Number(first);
+    if(Number.isFinite(x)){
+      vals.push(x);
+      groups.push(parts[1] ?? null);
+    }
+  }
+  return {vals, groups};
+}
+
+function sturgesBins(n){ return Math.max(3, Math.ceil(Math.log2(n)+1)); }
+function sqrtBins(n){ return Math.max(3, Math.ceil(Math.sqrt(n))); }
+function iqr(arr){ const qs = quantiles(arr,[0.25,0.75]); return qs[1]-qs[0]; }
+function freedmanDiaconisBins(arr){
+  const n = arr.length; if(n<2) return 3; 
+  const IQR = iqr(arr); if(IQR===0) return sturgesBins(n);
+  const h = 2*IQR/Math.cbrt(n); // bin width
+  const min = Math.min(...arr), max = Math.max(...arr);
+  return Math.max(3, Math.ceil((max-min)/h));
+}
+
+function mean(a){ return a.reduce((s,x)=>s+x,0)/a.length; }
+function variance(a){ const m=mean(a); return a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1); }
+function sd(a){ return Math.sqrt(variance(a)); }
+function quantiles(a,qs){
+  const b=[...a].sort((x,y)=>x-y); const n=b.length;
+  return qs.map(q=>{
+    if(n===1) return b[0];
+    const idx = (n-1)*q; const lo = Math.floor(idx), hi = Math.ceil(idx);
+    if(lo===hi) return b[lo];
+    const h = idx-lo; return b[lo]*(1-h)+b[hi]*h;
+  });
+}
+function median(a){ return quantiles(a,[0.5])[0]; }
+function mode(a){
+  const m = new Map(); for(const x of a){ m.set(x,(m.get(x)||0)+1); }
+  let best=null, cnt=0; for(const [k,v] of m){ if(v>cnt){ best=k; cnt=v; }}
+  return best;
+}
+function skewness(a){
+  const n=a.length; if(n<3) return NaN; const m=mean(a); const s=sd(a); if(s===0) return 0;
+  const m3=a.reduce((r,x)=>r+Math.pow(x-m,3),0)/n; return m3/Math.pow(s,3);
+}
+function kurtosisExcess(a){
+  const n=a.length; if(n<4) return NaN; const m=mean(a); const s=sd(a); if(s===0) return -3;
+  const m4=a.reduce((r,x)=>r+Math.pow(x-m,4),0)/n; return m4/Math.pow(s,4)-3;
+}
+function tCritical95(n){ // two-sided 95% via approximation when n>1
+  const df = n-1; if(df<=0) return NaN; if(df>120) return 1.96;
+  const a = 1/(4*df), b = 1/(96*df**2), c = 7/(1536*df**3);
+  return 1.96*(1 + a + b + c);
+}
+function meanCI95(a){
+  const n=a.length; const m=mean(a); const s=sd(a); const t=tCritical95(n);
+  const se=s/Math.sqrt(n); return [m - t*se, m + t*se];
+}
+function tukeyFence(a){
+  const [q1,q3]=quantiles(a,[0.25,0.75]); const IQR=q3-q1; return [q1-1.5*IQR, q3+1.5*IQR];
+}
+
+// Acklam's inverse normal CDF approximation (robust, explicit parentheses)
+function normInv(p){
+  if(!(p>0 && p<1)) { return NaN; }
+  const a=[-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.3577518672690, -30.66479806614716, 2.506628277459239];
+  const b=[-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
+  const c=[-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d=[0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+  const pl=0.02425, ph=1-pl;
+  let q, r;
+  if(p < pl){
+    q = Math.sqrt(-2 * Math.log(p));
+    const num = (((((c[0]*q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]);
+    const den = ((((d[0]*q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+    return num / den;
+  }
+  if(p > ph){
+    q = Math.sqrt(-2 * Math.log(1-p));
+    const num = (((((c[0]*q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]);
+    const den = ((((d[0]*q + d[1]) * q + d[2]) * q + d[3]) * q + 1);
+    return - num / den;
+  }
+  q = p - 0.5; r = q*q;
+  const num = (((((a[0]*r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q;
+  const den = (((((b[0]*r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+  return num / den;
+}
+
+function prepQQ(a){
+  const b=[...a].sort((x,y)=>x-y); const n=b.length; const theo=[], emp=[];
+  for(let i=1;i<=n;i++){
+    const p=i/(n+1); theo.push(normInv(p)); emp.push(b[i-1]);
+  }
+  const m=mean(emp), s=sd(emp); const z=emp.map(x=>(x-m)/s);
+  return {theo, z};
+}
+
+// ---------- State ----------
+let state={ data:[], groups:[], groupLevels:["All"] };
+
+function setKPIs(arr){
+  const n = arr.length; const miss = state._rawCount ? state._rawCount - n : 0;
+  if(n===0){ $('#kpi').innerHTML='<div class="card">暂无数据…</div>'; return; }
+  const mn = mean(arr); const med=median(arr); const md = mode(arr);
+  const v = variance(arr); const s = Math.sqrt(v); const r = Math.max(...arr)-Math.min(...arr);
+  const [q1,q3] = quantiles(arr,[0.25,0.75]); const IQR=q3-q1; const cv = mn!==0 ? (s/mn*100):NaN;
+  const sk = skewness(arr); const ku = kurtosisExcess(arr);
+  const [ciL,ciU]=meanCI95(arr); const [lf,uf]=tukeyFence(arr);
+  const outN = arr.filter(x=>x<lf||x>uf).length;
+
+  const items=[
+    {k:'样本量 n', v:n}, {k:'缺失 Missing', v:miss}, {k:'最小 Min', v:fmt(Math.min(...arr))}, {k:'最大 Max', v:fmt(Math.max(...arr))},
+    {k:'均值 Mean', v:fmt(mn)}, {k:'中位数 Median', v:fmt(med)}, {k:'众数 Mode', v:fmt(md)}, {k:'极差 Range', v:fmt(r)},
+    {k:'Q1', v:fmt(q1)}, {k:'Q3', v:fmt(q3)}, {k:'IQR', v:fmt(IQR)}, {k:'方差 Variance', v:fmt(v)},
+    {k:'标准差 SD', v:fmt(s)}, {k:'变异系数 CV%', v:isFinite(cv)?cv.toFixed(2):'NA'}, {k:'偏度 Skew', v:fmt(sk)}, {k:'峰度 Kurtosis(excess)', v:fmt(ku)},
+    {k:'95%CI 下限', v:fmt(ciL)}, {k:'95%CI 上限', v:fmt(ciU)}, {k:'Tukey 下界', v:fmt(lf)}, {k:'Tukey 上界', v:fmt(uf)},
+    {k:'异常值个数', v:outN}
+  ];
+  const html = items.map(it=>`<div class="card"><div class="stat"><span class="muted">${it.k}</span><b>${it.v}</b></div></div>`).join('');
+  $('#kpi').innerHTML=html;
+}
+
+function fmt(x){ if(x===null||x===undefined||Number.isNaN(x)) return 'NA'; return Number(x).toFixed(3); }
+
+function computeBins(arr){
+  const rule=$('#binRule').value; const n=arr.length; let bins;
+  if(rule==='sturges') bins = sturgesBins(n);
+  else if(rule==='sqrt') bins = sqrtBins(n);
+  else if(rule==='fd') bins = freedmanDiaconisBins(arr);
+  else if(rule==='manual') bins = Number($('#bins').value);
+  if(!Number.isFinite(bins) || bins<=0) bins = sturgesBins(n);
+  $('#bins').placeholder = rule==='manual'? '输入整数…':'auto';
+  return bins;
+}
+
+function drawHist(arr, group=null){
+  const bins = computeBins(arr);
+  const title = titleWithGroup(group);
+  const trace = {type:'histogram', x:arr, nbinsx:bins, opacity:0.85, marker:{line:{width:0}}};
+  const layout={
+    title:`${title} · Histogram (bins=${bins})`,
+    paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e9edff'},
+    margin:{t:40,l:45,r:10,b:45}, xaxis:{title:$('#varName').value||'Value'}, yaxis:{title:'Count'}
+  };
+  Plotly.newPlot('chart',[trace],layout,{responsive:true,displaylogo:false});
+}
+
+function drawBox(arr, grouped){
+  const title = $('#varName').value||'Value';
+  let traces=[]; if(grouped && state.groupLevels.length>1){
+    for(const g of state.groupLevels){
+      const a = state.data.filter((x,i)=>state.groups[i]===g);
+      traces.push({type:'box', y:a, name:g, boxpoints:'outliers', jitter:0.2, pointpos:0});
+    }
+  }else{
+    traces=[{type:'box', y:arr, name:'All', boxpoints:'outliers', jitter:0.2, pointpos:0}];
+  }
+  const layout={
+    title:`${title} · Boxplot${grouped&&state.groupLevels.length>1? ' (by Group)':''}`,
+    paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e9edff'},
+    margin:{t:40,l:45,r:10,b:45}, yaxis:{title:title}
+  };
+  Plotly.newPlot('chart',traces,layout,{responsive:true,displaylogo:false});
+}
+
+function drawECDF(arr){
+  const b=[...arr].sort((x,y)=>x-y); const n=b.length; const x=[], y=[];
+  for(let i=0;i<n;i++){ x.push(b[i]); y.push((i+1)/n); }
+  const title=$('#varName').value||'Value';
+  const trace={type:'scatter', mode:'lines', x, y};
+  const layout={
+    title:`${title} · ECDF`, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e9edff'},
+    margin:{t:40,l:45,r:10,b:45}, xaxis:{title:title}, yaxis:{title:'F(x)', rangemode:'tozero'}
+  };
+  Plotly.newPlot('chart',[trace],layout,{responsive:true,displaylogo:false});
+}
+
+function drawQQ(arr){
+  const {theo,z} = prepQQ(arr);
+  const title=$('#varName').value||'Value';
+  const trace={type:'scatter', mode:'markers', x:theo, y:z, name:'Data'};
+  const fitX=[Math.min(...theo), Math.max(...theo)];
+  const fitY=[Math.min(...theo), Math.max(...theo)];
+  const line={type:'scatter', mode:'lines', x:fitX, y:fitY, name:'45° line'};
+  const layout={
+    title:`${title} · Normal QQ Plot (z‑scores)`, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)', font:{color:'#e9edff'},
+    margin:{t:40,l:45,r:10,b:45}, xaxis:{title:'Theoretical Quantiles'}, yaxis:{title:'Sample Quantiles (z)'}
+  };
+  Plotly.newPlot('chart',[trace,line],layout,{responsive:true,displaylogo:false});
+}
+
+function titleWithGroup(g){
+  const base = $('#varName').value || 'Value';
+  return g ? `${base}（Group: ${g}）` : base;
+}
+
+function refreshAll(){
+  const arr = state.data;
+  $('#nShow').textContent = arr.length;
+  $('#gShow').textContent = state.groupLevels.length;
+  setKPIs(arr);
+  drawHist(arr);
+}
+
+function exportStatsCSV(){
+  const arr = state.data; if(arr.length===0) return;
+  const n = arr.length; const miss = state._rawCount ? state._rawCount - n : 0;
+  const mn = mean(arr), med=median(arr), md=mode(arr);
+  const v=variance(arr), s=sd(arr), r=Math.max(...arr)-Math.min(...arr);
+  const [q1,q3]=quantiles(arr,[0.25,0.75]); const IQR=q3-q1; const cv=s/mn*100;
+  const sk=skewness(arr), ku=kurtosisExcess(arr); const [ciL,ciU]=meanCI95(arr);
+  const [lf,uf]=tukeyFence(arr); const outN=arr.filter(x=>x<lf||x>uf).length;
+  const rows=[["Variable","n","Missing","Min","Q1","Median","Mean","Q3","Max","Range","Variance","SD","CV%","Skew","Kurtosis(excess)","95%CI_L","95%CI_U","Tukey_L","Tukey_U","Outliers"],
+    [($('#varName').value||'Value'), n, miss, Math.min(...arr), q1, med, mn, q3, Math.max(...arr), r, v, s, cv, sk, ku, ciL, ciU, lf, uf, outN]
+  ];
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='descriptives.csv'; a.click();
+}
+
+function exportCurrentPlot(){ Plotly.downloadImage('chart', {format:'png', filename:'chart'}); }
+
+// ---------- Self Tests ----------
+function approx(a,b,eps=1e-6){ return Math.abs(a-b) <= eps; }
+function runSelfTests(){
+  const tests=[];
+  // mean/variance of [1,2,3,4]
+  tests.push({name:'mean([1,2,3,4]) = 2.5', pass: approx(mean([1,2,3,4]), 2.5)});
+  tests.push({name:'variance([1,2,3,4]) = 1.6666667', pass: approx(variance([1,2,3,4]), 1.6666666667,1e-9)});
+  // quantiles
+  const qs = quantiles([1,2,3,4,5],[0.25,0.5,0.75]);
+  tests.push({name:'median([1..5]) = 3', pass: approx(qs[1],3)});
+  // normInv basics
+  tests.push({name:'normInv(0.5) ≈ 0', pass: Math.abs(normInv(0.5)) < 1e-12});
+  tests.push({name:'normInv(0.975) ≈ 1.96', pass: Math.abs(normInv(0.975)-1.95996398454) < 5e-4});
+  tests.push({name:'normInv(0.025) ≈ -1.96', pass: Math.abs(normInv(0.025)+1.95996398454) < 5e-4});
+
+  const el = $('#selfTests');
+  el.innerHTML = tests.map(t=>`<div>${t.pass?'<span class="pass">PASS</span>':'<span class="fail">FAIL</span>'} — ${t.name}</div>`).join('');
+}
+
+// ---------- Event wiring ----------
+$('#btnAnalyze').addEventListener('click', ()=>{
+  const text = $('#raw').value.trim();
+  let vals=[], groups=[]; state._rawCount=0;
+  if(text){ const r=parseFreeText(text); vals=r.vals; groups=r.groups; state._rawCount = r.vals.length; }
+  const up = vals.filter(x=>Number.isFinite(x));
+  state.data = up; state.groups = (groups.length===up.length)? groups: Array(up.length).fill(null);
+  const gl = Array.from(new Set(state.groups.filter(g=>g!==null))); state.groupLevels = gl.length? gl: ["All"];
+  refreshAll();
+});
+
+$('#file').addEventListener('change', (e)=>{
+  const f=e.target.files[0]; if(!f) return;
+  Papa.parse(f, {complete:(res)=>{
+    const data=[]; const groups=[];
+    for(const row of res.data){
+      if(!row || row.length===0) continue;
+      const first = (row[0]??'').toString().trim();
+      if(first === '' || first.toLowerCase() === 'na') continue;
+      const x = Number(first);
+      if(Number.isFinite(x)){ data.push(x); groups.push((row[1]??null)); }
+    }
+    state.data=data; state.groups=groups; state.groupLevels = Array.from(new Set(groups.filter(g=>g!==null)));
+    if(state.groupLevels.length===0) state.groupLevels=["All"];
+    state._rawCount=data.length; refreshAll();
+  }})
+});
+
+$('#btnSampleNormal').addEventListener('click', ()=>{
+  const n=200; const out=[]; for(let i=0;i<n;i++){
+    const u=Math.random(), v=Math.random(); const z=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); out.push(100+15*z);
+  }
+  $('#raw').value = out.map(x=>x.toFixed(2)).join('\n'); $('#varName').value='Sample (Normal)';
+});
+$('#btnSampleSkew').addEventListener('click', ()=>{
+  const n=200; const out=[]; for(let i=0;i<n;i++){
+    const u=Math.random(), v=Math.random(); const z=Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); out.push(Math.exp(3+0.5*z));
+  }
+  $('#raw').value = out.map(x=>x.toFixed(2)).join('\n'); $('#varName').value='Sample (Skewed)';
+});
+
+$('#binRule').addEventListener('change', ()=>{ if(state.data.length) drawHist(state.data); });
+$('#bins').addEventListener('input', ()=>{ if(state.data.length && $('#binRule').value==='manual') drawHist(state.data); });
+
+$$(".tab").forEach(el=>el.addEventListener('click', ()=>{
+  $$(".tab").forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  if(state.data.length===0){ Plotly.purge('chart'); return; }
+  const key=el.dataset.tab;
+  if(key==='hist') drawHist(state.data);
+  else if(key==='box') drawBox(state.data, true);
+  else if(key==='ecdf') drawECDF(state.data);
+  else if(key==='qq') drawQQ(state.data);
+}));
+
+$('#btnSelfTest').addEventListener('click', runSelfTests);
+$('#btnReset').addEventListener('click', (e)=>{ e.preventDefault(); location.reload(); });
+$('#btnExportStats').addEventListener('click', exportStatsCSV);
+$('#btnExportPNG').addEventListener('click', exportCurrentPlot);
+
+</script>
+</body>
+</html>
