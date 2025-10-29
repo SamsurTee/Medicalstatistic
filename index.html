@@ -128,7 +128,7 @@
   // 简单描述生成（可按需扩展）
   function genDesc(filename) {
     const key = filename.toLowerCase();
-    if (key.includes("chi") || key.includes("卡方")) return "Pearson / Yates / Fisher 选项与期望频数自动计算";
+    if (key.includes("chi_square") || key.includes("chi-square") || key.includes("卡方")) return "Pearson / Yates / Fisher 选项与期望频数自动计算";
     if (key.includes("t_") || key.includes("t-") || key.includes("t ")) return "单样本 / 双样本 / 分布演示";
     if (key.includes("normal")) return "正态分布形状与参数可调演示";
     if (key.includes("regression") || key.includes("ols")) return "回归系数、残差与拟合可视化";
