@@ -3,7 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Medical Statistics — Parameter Estimator</title>
+<title>参数估计教学实验页 | Medical Statistics Parameter Estimator</title>
+<meta
+  name="description"
+  content="用于医学统计教学的参数估计页面，支持均值、率、均值差、率差和方差区间估计，并展示逐步计算过程。"
+/>
 <style>
   :root { --w: 920px; }
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; line-height: 1.45; margin: 0; background:#fafafa; color:#111; }
@@ -28,14 +32,45 @@
   .list { margin: 6px 0 0 18px; }
   footer { max-width: var(--w); margin: 14px auto 40px; color:#666; padding: 0 6px; }
   .pill { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid #d1d5db; font-size:12px; background:#fff; margin-left:6px;}
+  .topbar { max-width: var(--w); margin: 0 auto; padding: 18px 6px 0; display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap; }
+  .course-link { display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px; border:1px solid #cbd5e1; text-decoration:none; color:#0f172a; background:#fff; font-weight:700; }
+  .hero { margin: 14px auto 0; }
+  .hero-grid { display:grid; grid-template-columns:1.05fr .95fr; gap:12px; }
+  .hero-card { border:1px solid #e5e7eb; border-radius:10px; padding:12px; background:#f8fafc; }
+  .mini-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .mini-card { border:1px solid #e5e7eb; border-radius:10px; padding:12px; background:#fff; }
+  .mini-card .label { color:#555; font-size:13px; }
+  .mini-card .value { font-size:20px; font-weight:800; margin-top:6px; }
+  .mini-card .note { font-size:13px; color:#555; margin-top:6px; line-height:1.55; }
+  @media (max-width: 880px){ .hero-grid, .mini-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
+<div class="topbar">
+  <a class="course-link" href="index.html">← 返回课程导航</a>
+  <div class="muted">课程位置：参数估计 · 区间估计</div>
+</div>
 <header>
-  <h1>Parameter Estimator — Medical Statistics</h1>
+  <h1>参数估计教学实验页 · Medical Statistics Parameter Estimator</h1>
   <p>Paste data or enter summary stats. Get point estimates, SE, and confidence intervals with step-by-step details.</p>
 </header>
 <main>
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-card">
+        <h2 style="margin:0 0 8px 0; font-size:20px;">这页最适合怎么用？</h2>
+        <p class="muted">它适合把“点估计、标准误、置信区间和估计精度”放在一起讲。先让学生区分估计对象是什么，再让他们比较不同样本量、不同指标下区间宽度的变化。</p>
+        <p class="muted">如果课堂上已经讲过正态分布和置信区间，这页正好用来承接“公式如何落到具体数据上”。</p>
+      </div>
+      <div class="mini-grid">
+        <div class="mini-card"><div class="label">先问什么</div><div class="value">估计谁</div><div class="note">先明确是均值、率、均值差、率差还是方差。</div></div>
+        <div class="mini-card"><div class="label">核心概念</div><div class="value">SE + CI</div><div class="note">标准误反映抽样波动，区间反映估计不确定性。</div></div>
+        <div class="mini-card"><div class="label">容易误区</div><div class="value">只看点估计</div><div class="note">只报均值或率不够，至少还要交代不确定性。</div></div>
+        <div class="mini-card"><div class="label">适合场景</div><div class="value">作业讲评</div><div class="note">把书上例题、论文表格或练习数据直接录入即可。</div></div>
+      </div>
+    </div>
+  </section>
+
   <div class="grid grid-2">
     <div>
       <label>Estimator</label>
@@ -153,7 +188,8 @@
 </main>
 
 <footer>
-  <small>Tip: You can host this file on your LMS or GitHub Pages. Designed for teaching: shows steps and interprets results.</small>
+  <small>Tip: You can host this file on your LMS or GitHub Pages. Designed for teaching: shows steps and interprets results.
+    建议课堂顺序：估计对象 → 点估计 → SE → CI → 结果解释。</small>
 </footer>
 
 <script>

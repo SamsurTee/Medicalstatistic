@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>定量数据统计描述 · Quantitative Descriptives</title>
+  <meta
+    name="description"
+    content="面向医学统计教学的定量数据描述统计实验页，支持上传或粘贴数据，并生成集中趋势、离散程度和分布图形解释。"
+  />
   <link rel="preconnect" href="https://cdn.jsdelivr.net"/>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
@@ -52,9 +56,24 @@
     .pass{color:var(--ok); font-weight:700}
     .fail{color:var(--danger); font-weight:700}
     details summary{cursor:pointer}
+    .topbar{max-width:1200px; margin:0 auto; padding:18px 24px 0; display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap}
+    .course-link{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px; border:1px solid #27336b; text-decoration:none; color:var(--text); background:#101a3a; font-weight:700}
+    .hero{margin-bottom:14px}
+    .hero-grid{display:grid; grid-template-columns:1.1fr .9fr; gap:14px}
+    .hero-copy p{margin:.5rem 0 0; color:#ced8ff; opacity:.92}
+    .mini-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+    .mini-card{background:var(--card); border:1px solid #1b2349; border-radius:16px; padding:14px}
+    .mini-card .label{font-size:.82rem; color:var(--muted)}
+    .mini-card .value{font-size:1.35rem; font-weight:800; margin-top:6px}
+    .mini-card .note{font-size:.84rem; color:#cdd7ff; margin-top:6px; line-height:1.55}
+    @media (max-width:980px){.hero-grid,.mini-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
+  <div class="topbar">
+    <a class="course-link" href="index.html">← 返回课程导航</a>
+    <div class="sub">课程位置：描述统计 · 连续变量</div>
+  </div>
   <div class="wrap">
     <header>
       <div>
@@ -68,6 +87,38 @@
         <a id="btnReset" class="btn ghost" href="#">重置</a>
       </div>
     </header>
+
+    <section class="panel hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <h2 style="margin:0">这页解决什么问题？</h2>
+          <p>它把“均值、中位数、方差、标准差、偏态、峰度、异常值和图形判断”放到同一页里，适合课堂上把分散的描述统计概念串成一条完整分析路径。</p>
+          <p>推荐用法是：先贴入真实数据，再切换不同图形，让学生先描述数据形态，再解释指标为什么会这样变化。</p>
+        </div>
+        <div class="mini-grid">
+          <div class="mini-card">
+            <div class="label">先看什么</div>
+            <div class="value">形态</div>
+            <div class="note">先观察直方图、箱线图和 QQ 图，再回头解释均值与标准差。</div>
+          </div>
+          <div class="mini-card">
+            <div class="label">最适合讲</div>
+            <div class="value">异常值</div>
+            <div class="note">一旦换成偏态或离群数据，学生能立刻看到均值、中位数和 IQR 的区别。</div>
+          </div>
+          <div class="mini-card">
+            <div class="label">课堂提醒</div>
+            <div class="value">别只报均值</div>
+            <div class="note">描述统计要同时交代中心、离散和分布形态，不能只给一个均值。</div>
+          </div>
+          <div class="mini-card">
+            <div class="label">适合场景</div>
+            <div class="value">课内外</div>
+            <div class="note">课堂投屏、病例数据练习和论文表 1 讲评都可以直接用。</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <section class="grid g-2">
       <div class="panel">
@@ -156,6 +207,15 @@
     <section class="panel" style="margin-top:14px">
       <h3>自检用例（Tests）</h3>
       <div id="selfTests" class="help">点击上方“运行自检”按钮执行内置单元测试，验证均值/方差/分位数/正态分位近似等函数。</div>
+    </section>
+
+    <section class="panel" style="margin-top:14px">
+      <h3>课堂建议 · Teaching Notes</h3>
+      <ul>
+        <li>让学生先描述“分布看起来像什么”，再说均值、标准差和偏度，效果通常比先报数字更好。</li>
+        <li>同一组数据切换不同分箱规则时，正好可以讨论“图形判断受展示方式影响”的问题。</li>
+        <li>如果箱线图和 QQ 图都提示偏离正态，后续讲 t 检验和参数估计时就更容易解释为什么要关注分布假设。</li>
+      </ul>
     </section>
   </div>
 

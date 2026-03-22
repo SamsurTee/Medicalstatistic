@@ -3,7 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Interactive OLS – Linear Regression Lab</title>
+  <title>OLS 线性回归互动实验室 | Interactive OLS Linear Regression Lab</title>
+  <meta
+    name="description"
+    content="通过拖动参数、查看残差和比较拟合结果，理解 OLS 线性回归中的回归系数、SSE、MSE 和 R²。"
+  />
   <style>
     :root{
       --bg: #0b1020;
@@ -68,12 +72,26 @@
     summary{cursor:pointer; color:#cfe7ff}
     .note{font-size:12px; color:#9fb0c7}
     .footer{margin-top:10px; display:flex; gap:8px; flex-wrap:wrap}
+    .toplink{display:inline-flex; align-items:center; gap:8px; padding:10px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.16); text-decoration:none; color:var(--text); font-weight:700}
+    .intro{margin-bottom:18px}
+    .intro-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:14px}
+    .intro-card{background:rgba(0,0,0,.24); border:1px solid rgba(255,255,255,.08); border-radius:14px; padding:14px}
+    .mini-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+    .mini-card{padding:12px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); border-radius:12px}
+    .mini-card .label{font-size:12px; color:var(--muted)}
+    .mini-card .value{font-size:18px; font-weight:800; margin-top:6px}
+    .mini-card .note{margin-top:6px}
+    .page-foot{max-width:1200px; margin:18px auto 40px; padding:0 18px; color:var(--muted); font-size:13px; line-height:1.7}
+    @media (max-width:980px){.intro-grid,.mini-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <header>
     <div class="wrap">
-      <h1>OLS Linear Regression – Interactive Teaching Lab</h1>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap">
+        <a class="toplink" href="index.html">← 返回课程导航</a>
+        <h1>OLS 线性回归互动实验室</h1>
+      </div>
       <div style="display:flex; gap:8px">
         <button class="btn ghost" id="btnExport">Export CSV</button>
         <button class="btn" id="btnReset">Reset</button>
@@ -82,6 +100,24 @@
   </header>
 
   <div class="container">
+    <section class="card intro">
+      <div class="intro-grid">
+        <div class="intro-card">
+          <h2 style="margin-top:0">这页最适合讲什么？</h2>
+          <div class="aside">
+            <p>它最适合用来解释“回归线为什么这样放、残差为什么要平方、R² 为什么会变化”。相比只写公式，这页能把 OLS 变成一套学生看得见、拖得动、改得出结果的过程。</p>
+            <p>建议先让学生手动调节截距和斜率去压低 SSE，再点击 <code>Fit by OLS</code> 看最优解，最后再讨论异常值为什么会显著拉动拟合结果。</p>
+          </div>
+        </div>
+        <div class="mini-grid">
+          <div class="mini-card"><div class="label">先讲目标</div><div class="value">最小 SSE</div><div class="note">先把“残差平方和最小”讲清楚，再上闭式解。</div></div>
+          <div class="mini-card"><div class="label">最容易懂</div><div class="value">异常值影响</div><div class="note">拖动单个点时，回归线和残差会立即变化。</div></div>
+          <div class="mini-card"><div class="label">核心输出</div><div class="value">â, b̂, R²</div><div class="note">把系数、拟合优度和残差一起解释。</div></div>
+          <div class="mini-card"><div class="label">适用场景</div><div class="value">连续结局</div><div class="note">例如血压、住院天数、评分等连续变量建模。</div></div>
+        </div>
+      </div>
+    </section>
+
     <div class="grid">
       <section class="card">
         <h2>1) Explore the model visually</h2>
@@ -160,6 +196,7 @@
             <label for="chkAnim">Animate gradient descent to minimize SSE</label>
           </div>
           <div class="note">Tip: Move points! Drag any point to see how a single observation can shift the fit and residuals.</div>
+        </div>
       </aside>
     </div>
 
@@ -183,6 +220,11 @@
         <p>Solve this 2×2 system for <code>a</code> and <code>b</code> to obtain the closed‑form above.</p>
       </div>
     </section>
+  </div>
+
+  <div class="page-foot">
+    建议课堂顺序：<em>手动调参 → 观察残差 → 一键 OLS 拟合 → 看异常值与 R²</em>。
+    这一页最适合帮助学生理解“最小二乘”不是一句口号，而是一个可被可视化的优化目标。
   </div>
 
   <script>

@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>定性数据的统计描述｜互动教学站</title>
+  <meta
+    name="description"
+    content="面向医学统计教学的定性数据描述统计页面，涵盖率、构成比、RR、OR、标准化率与常见统计图。"
+  />
   <style>
     :root{
       --bg:#0b1020; --card:#121a33; --muted:#8fa3d8; --text:#e7ecff; --brand:#7aa2ff; --accent:#86efac;
@@ -42,6 +46,14 @@
     summary{cursor:pointer;color:#cfe0ff}
     footer{max-width:1100px;margin:40px auto 80px;color:#93a8e9;padding:0 16px}
     code{background:#0b1433;border:1px solid rgba(255,255,255,.08);padding:2px 6px;border-radius:8px}
+    .nav-home{background:rgba(134,239,172,.12); color:#dfffe9}
+    .hero-grid{display:grid; gap:16px; margin-top:16px}
+    @media(min-width:900px){.hero-grid{grid-template-columns:1.05fr .95fr}}
+    .hero-card{background:linear-gradient(180deg,#101737,#0c1430); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:16px}
+    .hero-mini{display:grid; gap:10px}
+    @media(min-width:900px){.hero-mini{grid-template-columns:repeat(2,1fr)}}
+    .hero-mini .box{background:#0a132c;border:1px dashed rgba(255,255,255,.12);border-radius:14px;padding:12px}
+    .hero-mini .val{font-size:20px;font-weight:800}
   </style>
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -50,6 +62,7 @@
   <header>
     <nav>
       <div class="brand">定性数据的统计描述 · 互动课件</div>
+      <a class="nav-home" href="index.html">返回导航</a>
       <a href="#relative">常用相对数</a>
       <a href="#epi">医学常用指标</a>
       <a href="#std">标准化率</a>
@@ -62,6 +75,19 @@
     <section>
       <h1>定性数据（分类变量）的统计描述</h1>
       <p class="lead">本页将课堂要点做成可视化交互：<b>率（rate）</b>、<b>构成比（proportion）</b>、<b>相对比（relative ratio）</b>，以及流行病学中的 <b>发病率/患病率/死亡率</b>、<b>相对危险度 RR</b>、<b>比数比 OR</b>、<b>标准化率</b>。每个模块都可输入你的数据，立即看到图形与指标。</p>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <h2 style="margin-top:0">这页最适合怎么讲？</h2>
+          <p class="muted" style="margin-top:10px">先用“率 vs 构成比”建立分类资料的基本语言，再进入 RR / OR 和标准化率。这样学生在看 2×2 表和流行病学指标时，不会把“频数、比例、风险和比值”混在一起。</p>
+          <p class="muted" style="margin-top:10px">建议从一个真实的公共卫生案例开始，例如吸烟与肺癌、接种与感染、治疗方案与疗效分级，再把数据填进下面的模块。</p>
+        </div>
+        <div class="hero-mini">
+          <div class="box"><div class="muted">先讲概念</div><div class="val">率 ≠ 构成比</div><div class="tip">一个强调发生频度，一个强调内部结构。</div></div>
+          <div class="box"><div class="muted">再讲关联</div><div class="val">RR / OR</div><div class="tip">把两组风险或优势连到研究设计上理解。</div></div>
+          <div class="box"><div class="muted">容易误区</div><div class="val">只背公式</div><div class="tip">要先交代研究对象、分子、分母和时间范围。</div></div>
+          <div class="box"><div class="muted">应用场景</div><div class="val">表格 + 图形</div><div class="tip">把数值解释和图形表达一起讲，效果最好。</div></div>
+        </div>
+      </div>
       <details style="margin-top:10px"><summary>如何使用？</summary>
         <ul>
           <li>在每个小工具中，输入分子/分母或2×2表格的数据；</li>
@@ -261,6 +287,7 @@
 
   <footer>
     <p>© <span id="yr"></span> 定性数据统计描述 · 互动教学 | 作者：Zhenti CUI | 课程网站用 | 本页为静态 HTML，可直接部署到 GitHub Pages。
+      <br>建议课堂顺序：<em>率/构成比 → RR/OR → 标准化率 → 统计图</em>。
       <br>如需在手机上引导：<em>导航栏 → 模块 → 输入数据 → 即时出图</em>。</p>
   </footer>
 

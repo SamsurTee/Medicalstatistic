@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>最大似然法 + Logistic回归｜互动教学站</title>
+  <meta
+    name="description"
+    content="通过似然函数、IRLS 拟合、OR 与检验对比来理解最大似然估计和 Logistic 回归。"
+  />
   <style>
     :root{
       --bg:#0b1020; --card:#121a33; --muted:#8fa3d8; --text:#e7ecff; --brand:#7aa2ff; --accent:#86efac; --ink:#dbe4ff;
@@ -43,6 +47,14 @@
     footer{max-width:1200px;margin:40px auto 80px;color:#93a8e9;padding:0 16px}
     code{background:#0b1433;border:1px solid rgba(255,255,255,.08);padding:2px 6px;border-radius:8px}
     .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}
+    .nav-home{background:rgba(134,239,172,.12); color:#dfffe9}
+    .hero-grid{display:grid; gap:16px; margin-top:16px}
+    @media(min-width:980px){.hero-grid{grid-template-columns:1.05fr .95fr}}
+    .hero-card{background:linear-gradient(180deg,#101737,#0c1430); border:1px solid rgba(255,255,255,.08); border-radius:18px; padding:16px}
+    .hero-mini{display:grid; gap:10px}
+    @media(min-width:980px){.hero-mini{grid-template-columns:repeat(2,1fr)}}
+    .hero-mini .box{background:#0a132c;border:1px dashed rgba(255,255,255,.12);border-radius:14px;padding:12px}
+    .hero-mini .val{font-size:20px;font-weight:800}
   </style>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
@@ -50,6 +62,7 @@
   <header>
     <nav>
       <div class="brand">最大似然法 + Logistic回归 · 互动课件</div>
+      <a class="nav-home" href="index.html">返回导航</a>
       <a href="#mle">最大似然法</a>
       <a href="#logit">Logistic 回归</a>
       <a href="#tests">参数检验</a>
@@ -62,6 +75,19 @@
     <section>
       <h1>最大似然法（MLE）与 Logistic 回归</h1>
       <p class="lead">本页将课堂要点做成可视化交互：从<b>似然/对数似然曲线</b>到<b>Logistic 回归的拟合</b>（牛顿-拉夫逊/IRLS）、<b>OR 与 95%CI</b>、<b>Wald vs 似然比检验(LRT)</b>、<b>损失/收敛曲线</b>与<b>分界线</b>。输入你自己的数据或使用示例，一键看到结果与图形。</p>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <h2 style="margin-top:0">推荐教学顺序</h2>
+          <p class="muted" style="margin-top:10px">先用 MLE 模块讲“为什么要最大化对数似然”，再进入 Logistic 回归，让学生知道 β̂ 不是凭空算出来的，而是由极大似然估计得到的。</p>
+          <p class="muted" style="margin-top:10px">进入回归后，建议按“系数 β → OR → 95%CI → Wald/LRT → 诊断”的顺序讲，避免学生只记得一个 OR 而忽略模型质量与适用条件。</p>
+        </div>
+        <div class="hero-mini">
+          <div class="box"><div class="muted">核心问题</div><div class="val">为什么是 MLE</div><div class="tip">先理解似然，再理解回归系数是怎样被估出来的。</div></div>
+          <div class="box"><div class="muted">核心输出</div><div class="val">OR 与 CI</div><div class="tip">不要只看 OR，还要连同 95%CI 和检验一起解释。</div></div>
+          <div class="box"><div class="muted">容易误区</div><div class="val">分离 / 共线</div><div class="tip">完全分离和共线都会让 Wald 检验看起来“有数值但不可靠”。</div></div>
+          <div class="box"><div class="muted">适合场景</div><div class="val">二分类结局</div><div class="tip">病例-对照、是否患病、是否转归、是否阳性都很适合演示。</div></div>
+        </div>
+      </div>
     </section>
 
     <!-- MLE 基础演示 -->
@@ -245,7 +271,8 @@
   </main>
 
   <footer>
-    <p>© <span id="yr"></span> 最大似然法 + Logistic 回归 · 互动教学 | 作者：Zhenti CUI | 课程网站用 | 本页为静态 HTML，可直接部署到 GitHub Pages。</p>
+    <p>© <span id="yr"></span> 最大似然法 + Logistic 回归 · 互动教学 | 作者：Zhenti CUI | 课程网站用 | 本页为静态 HTML，可直接部署到 GitHub Pages。
+      <br>建议课堂顺序：<em>似然曲线 → Logistic 拟合 → OR/CI → Wald/LRT → 分离与诊断</em>。</p>
   </footer>
 
 <script>
