@@ -1,366 +1,1268 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>卡方检验示范教学（Pearson / Yates / Fisher）</title>
-<style>
-  :root{
-    --bg:#fafafa;--card:#ffffff;--border:#e5e7eb;--text:#111827;--muted:#6b7280;--accent:#111827;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;padding:24px;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  h1{margin:0 0 8px 0;font-size:24px}
-  .sub{color:var(--muted);font-size:14px;margin-bottom:16px}
-  .container{max-width:1100px;margin:0 auto}
-  .row{display:grid;grid-template-columns:1fr;gap:16px}
-  @media (min-width:900px){.row{grid-template-columns:1fr 1fr 1fr}}
-  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-  .controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-  label{font-size:14px;color:var(--muted);display:block;margin-bottom:6px}
-  input[type=number], select{width:100%;padding:8px 10px;border-radius:12px;border:1px solid var(--border);background:#fff}
-  table{border-collapse:collapse}
-  th,td{border:1px solid var(--border);padding:6px 8px}
-  th{background:#f8fafc;text-align:left;font-weight:600}
-  .num{font-variant-numeric:tabular-nums}
-  .btn{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer}
-  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  .dot{display:inline-block;width:10px;height:10px;border-radius:999px;margin-right:8px}
-  .dot.green{background:#10b981}.dot.yellow{background:#f59e0b}.dot.red{background:#ef4444}
-  .grid{display:grid;gap:16px}
-  @media (min-width:900px){.grid.cols-2{grid-template-columns:1fr 1fr}}
-  .muted{color:var(--muted)}
-  .title-sm{font-weight:600;font-size:14px;margin-bottom:6px}
-  .pill{display:inline-block;background:#f3f4f6;border:1px solid var(--border);padding:4px 8px;border-radius:999px}
-  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-  .right{text-align:right}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>卡方检验教学实验台 | Chi-Square Teaching Lab</title>
+  <meta
+    name="description"
+    content="用于医学统计教学的卡方检验互动页面，展示列联表、期望频数、方法选择、P 值、效应量和结果解释。"
+  />
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --panel: rgba(255, 255, 255, 0.88);
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #64748b;
+      --brand: #0f766e;
+      --accent: #c2410c;
+      --line: rgba(31, 41, 55, 0.12);
+      --shadow: 0 20px 42px rgba(31, 41, 55, 0.1);
+      --ok: #047857;
+      --warn: #b45309;
+      --bad: #b91c1c;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Avenir Next", "SF Pro Display", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(194, 65, 12, 0.08), transparent 20%),
+        linear-gradient(180deg, #f9fbfd 0%, #eef3f8 100%);
+      min-height: 100vh;
+    }
+
+    a { color: inherit; }
+
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 42px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .back-link {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid var(--line);
+      font-weight: 700;
+    }
+
+    .hero,
+    .card {
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.56);
+      box-shadow: var(--shadow);
+      border-radius: 28px;
+    }
+
+    .hero {
+      padding: 28px;
+      display: grid;
+      grid-template-columns: 1.18fr 0.92fr;
+      gap: 18px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: var(--brand);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(30px, 4.5vw, 48px);
+      line-height: 1.06;
+      margin-bottom: 14px;
+    }
+
+    .lead {
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.72;
+      max-width: 60ch;
+    }
+
+    .hero-points {
+      margin-top: 20px;
+      display: grid;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .hero-points div {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .hero-points div::before {
+      content: "•";
+      color: var(--accent);
+      font-size: 18px;
+      line-height: 1;
+      margin-top: -1px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-content: start;
+    }
+
+    .hero-box {
+      background: var(--card);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      border-radius: 20px;
+      padding: 16px;
+    }
+
+    .hero-box .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .hero-box .value {
+      font-size: 26px;
+      font-weight: 800;
+      line-height: 1.14;
+    }
+
+    .hero-box .note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.58;
+    }
+
+    .workspace {
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      padding: 22px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    .section-head h2 {
+      font-size: 25px;
+    }
+
+    .section-head p {
+      color: var(--muted);
+      line-height: 1.62;
+      max-width: 52ch;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input[type="number"],
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.88);
+      color: var(--ink);
+      font-size: 14px;
+    }
+
+    .rule-note,
+    .method-note,
+    .conclusion {
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      border-radius: 18px;
+      padding: 14px 16px;
+      color: var(--muted);
+      line-height: 1.68;
+      font-size: 14px;
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      border-color: rgba(15, 118, 110, 0.3);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 420px;
+    }
+
+    th,
+    td {
+      border: 1px solid rgba(31, 41, 55, 0.1);
+      padding: 8px 10px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    th {
+      background: rgba(15, 118, 110, 0.06);
+      font-weight: 700;
+    }
+
+    .table-wrap input[type="number"] {
+      width: 88px;
+      text-align: right;
+      padding: 8px 10px;
+      border-radius: 12px;
+    }
+
+    .grid-two {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .metric-box {
+      background: var(--card);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .metric-box .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .metric-box .value {
+      font-size: 23px;
+      font-weight: 800;
+      line-height: 1.12;
+    }
+
+    .checks {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .check-item {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+
+    .dot.ok { background: var(--ok); }
+    .dot.warn { background: var(--warn); }
+    .dot.bad { background: var(--bad); }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      background: rgba(15, 118, 110, 0.1);
+      color: var(--brand);
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .result-box {
+      background: var(--card);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+      border-radius: 18px;
+      padding: 15px;
+    }
+
+    .result-box .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .result-box .value {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.15;
+    }
+
+    .result-box .note {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.58;
+    }
+
+    .mono {
+      font-family: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
+    }
+
+    .teaching-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .teaching-item {
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(31, 41, 55, 0.08);
+    }
+
+    .teaching-item strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 15px;
+    }
+
+    .teaching-item p {
+      color: var(--muted);
+      line-height: 1.64;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .grid-two {
+        grid-template-columns: 1fr;
+      }
+
+      .controls,
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page { width: min(100% - 18px, 100%); }
+      .hero,
+      .card {
+        border-radius: 22px;
+        padding: 18px;
+      }
+      .hero-grid,
+      .result-grid,
+      .controls,
+      .metric-grid {
+        grid-template-columns: 1fr;
+      }
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      table {
+        min-width: 360px;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="container">
-  <h1>卡方检验示范教学（Pearson / Yates / Fisher）</h1>
-  <div class="sub">按样本量 n 与期望数 E 的规则自动选择方法，也可手动覆盖；支持输入或随机生成数据；自动给出期望值、单元格贡献、统计量与 P 值。</div>
-  <div class="card">
-    <div class="controls">
+  <div class="page">
+    <div class="topbar">
+      <a class="back-link" href="index.html">← 返回课程导航</a>
+      <div>列联表分析最好同时讲：方法选择、P 值、效应量、主要贡献单元格。</div>
+    </div>
+
+    <header class="hero">
       <div>
-        <label>行数 r</label>
-        <input id="rows" type="number" min="2" max="8" value="2">
-      </div>
-      <div>
-        <label>列数 c</label>
-        <input id="cols" type="number" min="2" max="8" value="2">
-      </div>
-      <div>
-        <label>方法选择</label>
-        <select id="method">
-          <option value="auto">自动（按规则推荐）</option>
-          <option value="pearson_or_special">Pearson χ²（2×2/默认）</option>
-          <option value="special">2×2专用公式χ²</option>
-          <option value="yates">2×2 Yates连续性校正</option>
-          <option value="fisher">2×2 Fisher确切概率</option>
-        </select>
-      </div>
-    </div>
-    <div style="margin-top:14px" class="muted mono">规则：① n≥40 且所有 E≥5 → 基本 χ²；② n≥40 且有 1≤E&lt;5（2×2）→ Yates；③ n&lt;40 或 E&lt;1（2×2）→ Fisher。</div>
-  </div>
-
-  <div class="card" id="dataCard">
-    <div class="title-sm">输入观测频数（非负整数）</div>
-    <div class="tableWrap" id="tableWrap"></div>
-    <div class="btns">
-      <button class="btn primary" id="btnRnd">随机生成演示数据</button>
-      <button class="btn" id="btnStrong">生成差异明显的数据</button>
-      <button class="btn" id="btnZero">清零</button>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="card">
-      <div class="title-sm">样本/自由度/最小期望</div>
-      <div class="grid" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
-        <div>
-          <div class="muted">样本量 n</div>
-          <div id="n" class="num" style="font-size:22px;font-weight:700">—</div>
-        </div>
-        <div>
-          <div class="muted">自由度 df</div>
-          <div id="df" class="num" style="font-size:22px;font-weight:700">—</div>
-        </div>
-        <div>
-          <div class="muted">最小期望数 min(E)</div>
-          <div id="minE" class="num" style="font-size:22px;font-weight:700">—</div>
+        <p class="eyebrow">Chi-Square Teaching Lab</p>
+        <h1>卡方检验教学实验台</h1>
+        <p class="lead">
+          这不是一页只会报 P 值的计算器，而是一页可以用来讲解“为什么选这个方法、结果到底说明什么”的互动实验台。
+          你可以在同一页里看到观察值、期望值、方法推荐、效应量和结论解释。
+        </p>
+        <div class="hero-points">
+          <div>先判断列联表条件是否满足，再谈 Pearson、Yates 或 Fisher，不要把方法选择和结果解释拆开。</div>
+          <div>效应量用于回答“差异有多大”，P 值只回答“证据是否足够”。两者需要同时解释。</div>
+          <div>找到贡献最大的单元格，学生就更容易理解“关联主要由哪里产生”。</div>
         </div>
       </div>
-    </div>
-    <div class="card">
-      <div class="title-sm">适用性检查</div>
-      <div id="checks" class="grid"></div>
-      <div class="muted" style="margin-top:6px">推荐：<span id="rec" class="pill">—</span></div>
-    </div>
-    <div class="card">
-      <div class="title-sm">检验结果</div>
-      <div class="grid">
-        <div><b>方法：</b><span id="methodLabel">—</span> <span id="override" class="muted" style="font-size:12px"></span></div>
-        <div><b>统计量：</b><span id="stat">—</span></div>
-        <div><b>P 值：</b><span id="pval">—</span></div>
-        <div class="muted" style="font-size:12px">当 P ≤ 0.05 时，拒绝原假设（行与列独立/无关联）。</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid cols-2" style="margin-top:16px">
-    <div class="card">
-      <div class="title-sm">期望数 E 与单元格贡献 ((O−E)²/E)</div>
-      <div id="expTable"></div>
-    </div>
-    <div class="card">
-      <div class="grid cols-2">
-        <div>
-          <div class="title-sm">行合计</div>
-          <div id="rowSums"></div>
+      <div class="hero-grid">
+        <div class="hero-box">
+          <div class="label">推荐方法</div>
+          <div class="value" id="heroRecommendation">Pearson χ²</div>
+          <div class="note" id="heroRecommendationNote">当前条件适合直接使用 Pearson χ²。</div>
         </div>
-        <div>
-          <div class="title-sm">列合计</div>
-          <div id="colSums"></div>
+        <div class="hero-box">
+          <div class="label">当前 P 值</div>
+          <div class="value" id="heroPValue">0.0000</div>
+          <div class="note">结合 α 水平判断是否拒绝原假设。</div>
+        </div>
+        <div class="hero-box">
+          <div class="label">效应量</div>
+          <div class="value" id="heroEffect">φ = 0.000</div>
+          <div class="note" id="heroEffectNote">效应量描述关联强弱，不直接等同于显著性。</div>
+        </div>
+        <div class="hero-box">
+          <div class="label">主要贡献单元格</div>
+          <div class="value" id="heroContributor">行1 × 列1</div>
+          <div class="note" id="heroContributorNote">查看哪一个单元格对 χ² 贡献最大。</div>
         </div>
       </div>
-    </div>
+    </header>
+
+    <main class="workspace">
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Controls</p>
+            <h2>数据结构与检验设置</h2>
+          </div>
+          <p>支持 2×2 和一般 r×c 列联表。2×2 情形可自动推荐 Pearson、Yates 或 Fisher；r×c 情形展示 Pearson 结果并给出条件告警。</p>
+        </div>
+
+        <div class="controls">
+          <div>
+            <label for="rows">行数 r</label>
+            <input id="rows" type="number" min="2" max="8" value="2" />
+          </div>
+          <div>
+            <label for="cols">列数 c</label>
+            <input id="cols" type="number" min="2" max="8" value="2" />
+          </div>
+          <div>
+            <label for="method">方法选择</label>
+            <select id="method">
+              <option value="auto">自动推荐</option>
+              <option value="pearson">Pearson χ²</option>
+              <option value="special2x2" data-2x2-only="true">2×2 专用公式 χ²</option>
+              <option value="yates" data-2x2-only="true">2×2 Yates 连续性校正</option>
+              <option value="fisher" data-2x2-only="true">2×2 Fisher 确切概率</option>
+            </select>
+          </div>
+          <div>
+            <label for="alpha">显著性水平 α</label>
+            <input id="alpha" type="number" min="0.001" max="0.2" step="0.001" value="0.05" />
+          </div>
+        </div>
+
+        <div class="rule-note">
+          <strong>推荐逻辑：</strong>
+          2×2 表中，若 <span class="mono">n &lt; 40</span> 或存在 <span class="mono">E &lt; 1</span>，优先考虑 Fisher；
+          若存在 <span class="mono">1 ≤ E &lt; 5</span>，优先考虑 Yates；否则使用 Pearson χ²。
+          对一般 r×c 表，若不存在 <span class="mono">E &lt; 1</span> 且 <span class="mono">E &lt; 5</span> 的单元格不超过 20%，Pearson χ² 通常可接受；否则应考虑合并类别或更稳健的精确/置换方法。
+        </div>
+
+        <div class="btn-row">
+          <button class="btn" id="presetVaccine">示例：疫苗 × 感染（2×2）</button>
+          <button class="btn" id="presetRare">示例：不良反应小样本（2×2）</button>
+          <button class="btn" id="presetSeverity">示例：疗效分级（3×3）</button>
+          <button class="btn" id="btnRandom">随机生成</button>
+          <button class="btn" id="btnZero">清零</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Observed Counts</p>
+            <h2>输入观测频数 O</h2>
+          </div>
+          <p>录入的是实际观察到的频数。页面会自动计算行列合计、期望频数 E 以及每个单元格对 χ² 的贡献。</p>
+        </div>
+        <div class="table-wrap" id="tableWrap"></div>
+      </section>
+
+      <div class="grid-two">
+        <section class="card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Diagnostics</p>
+              <h2>适用性检查与推荐依据</h2>
+            </div>
+            <p>这里的内容帮助学生理解“为什么推荐这个方法”，而不只是被动接受工具给出的结果。</p>
+          </div>
+
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="label">样本量 n</div>
+              <div class="value" id="n">0</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">自由度 df</div>
+              <div class="value" id="df">0</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">最小期望数</div>
+              <div class="value" id="minE">0.000</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">E &lt; 5 单元格</div>
+              <div class="value" id="lt5Cells">0</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">E &lt; 5 比例</div>
+              <div class="value" id="lt5Ratio">0.0%</div>
+            </div>
+          </div>
+
+          <div class="checks" id="checks"></div>
+
+          <div class="pill-row">
+            <span class="pill" id="recPill">Pearson χ²</span>
+            <span class="pill" id="alphaPill">α = 0.05</span>
+          </div>
+
+          <div class="method-note" id="methodReason">当前条件适合直接使用 Pearson χ²。</div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Results</p>
+              <h2>检验结果与解释</h2>
+            </div>
+            <p>结果区同时给出检验方法、统计量、P 值、效应量和一句完整结论，帮助学生练习“结果叙述”。</p>
+          </div>
+
+          <div class="result-grid">
+            <div class="result-box">
+              <div class="label">实际使用方法</div>
+              <div class="value" id="methodLabel">Pearson χ²</div>
+              <div class="note" id="overrideNote">当前使用自动推荐。</div>
+            </div>
+            <div class="result-box">
+              <div class="label">统计量</div>
+              <div class="value" id="stat">χ² = 0.0000</div>
+              <div class="note" id="statNote">Fisher 检验不输出 χ² 统计量，但仍输出双侧 P 值。</div>
+            </div>
+            <div class="result-box">
+              <div class="label">P 值</div>
+              <div class="value" id="pval">0.0000</div>
+              <div class="note">与 α 比较后判断是否拒绝原假设。</div>
+            </div>
+            <div class="result-box">
+              <div class="label" id="effectLabel">Phi 系数 φ</div>
+              <div class="value" id="effectValue">0.000</div>
+              <div class="note" id="effectNote">当前效应量很弱。</div>
+            </div>
+          </div>
+
+          <div class="conclusion" id="conclusion">
+            在 α = 0.05 水平下，当前尚不能拒绝原假设，未见足够证据说明行变量与列变量存在统计学关联。
+          </div>
+        </section>
+      </div>
+
+      <div class="grid-two">
+        <section class="card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Expected Counts</p>
+              <h2>期望频数 E 与单元格贡献</h2>
+            </div>
+            <p>每个格子显示为 <span class="mono">E / 贡献值</span>。贡献值越大，说明该单元格对总体 χ² 的推动越明显。</p>
+          </div>
+          <div class="table-wrap" id="expTable"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Margins</p>
+              <h2>行列合计与结构提示</h2>
+            </div>
+            <p>边际分布帮助学生判断：差异到底来自哪一行、哪一列，还是整体结构变化。</p>
+          </div>
+          <div class="grid-two">
+            <div>
+              <h3 style="margin-bottom:10px">行合计</h3>
+              <div class="table-wrap" id="rowSums"></div>
+            </div>
+            <div>
+              <h3 style="margin-bottom:10px">列合计</h3>
+              <div class="table-wrap" id="colSums"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <section class="card">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Teaching Notes</p>
+            <h2>课堂提示与应用表达</h2>
+          </div>
+          <p>这些提示可以直接用于课堂讲评或学生作业反馈。</p>
+        </div>
+        <div class="teaching-list">
+          <div class="teaching-item">
+            <strong>先说结构，再说显著性</strong>
+            <p>列联表分析不应只报 P 值。先描述哪一行、哪一列更集中，再解释检验结果，会比“显著/不显著”更有统计学意义。</p>
+          </div>
+          <div class="teaching-item">
+            <strong>效应量回答“差异有多大”</strong>
+            <p>如果样本量很大，即使差异很小也可能显著；所以报告 φ 或 Cramér's V，有助于避免把“统计显著”误写成“实际影响很大”。</p>
+          </div>
+          <div class="teaching-item">
+            <strong>主要贡献单元格提示“差异来自哪里”</strong>
+            <p id="teachingContributor">当前贡献最大的单元格是 行1 × 列1，可重点解释它与期望频数的偏离程度。</p>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-  <div class="card" style="margin-top:16px">
-    <div class="title-sm">教学提示</div>
-    <ul>
-      <li>页面展示 O、E 与贡献值，帮助理解 χ² 的逐单元格累加。</li>
-      <li>2×2 情形会在样本不足或期望过小时切换至 Yates 或 Fisher。</li>
-      <li>r×c 若出现 E&lt;5 或 E&lt;1 会给出告警（建议合并类别或使用精确/置换检验）。</li>
-    </ul>
-  </div>
-</div>
-
-<script>
-// ===== 数学工具（Gamma/卡方CDF/超几何） =====
-function gammaln(z){
-  const cof=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,0.001208650973866179,-0.000005395239384953];
-  let x=z,y=x;let tmp=x+5.5;tmp-=(x+0.5)*Math.log(tmp);let ser=1.000000000190015;
-  for(let j=0;j<cof.length;j++) ser+=cof[j]/++y;
-  return -tmp+Math.log(2.5066282746310005*ser/x);
-}
-// 正则化下不完全Gamma P(a,x)
-function gammap(a,x){
-  if(x<=0) return 0;
-  if(x<a+1){
-    let ap=a,sum=1/a,del=sum;
-    for(let n=1;n<=100;n++){ap+=1;del*=x/ap;sum+=del;if(Math.abs(del)<Math.abs(sum)*1e-14) break;}
-    return sum*Math.exp(-x+a*Math.log(x)-gammaln(a));
-  }else{
-    let b=x+1-a,c=1/1e-30,d=1/b,h=d;
-    for(let i=1;i<=100;i++){
-      let an=-i*(i-a);b+=2;d=an*d+b;if(Math.abs(d)<1e-30) d=1e-30;
-      c=b+an/c;if(Math.abs(c)<1e-30) c=1e-30;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<1e-14) break;
+  <script>
+    function gammaln(z) {
+      const cof = [
+        76.18009172947146,
+        -86.50532032941677,
+        24.01409824083091,
+        -1.231739572450155,
+        0.001208650973866179,
+        -0.000005395239384953
+      ];
+      let x = z;
+      let y = x;
+      let tmp = x + 5.5;
+      tmp -= (x + 0.5) * Math.log(tmp);
+      let ser = 1.000000000190015;
+      for (let j = 0; j < cof.length; j += 1) ser += cof[j] / ++y;
+      return -tmp + Math.log(2.5066282746310005 * ser / x);
     }
-    return 1-Math.exp(-x+a*Math.log(x)-gammaln(a))*h;
-  }
-}
-function chi2cdf(x,k){return gammap(k/2,x/2);}
 
-// Fisher 2x2: 超几何 + 双侧
-function logChoose(N,K){ if(K<0||K>N) return -Infinity; return gammaln(N+1)-gammaln(K+1)-gammaln(N-K+1); }
-function hypergeomP(a,r1,c1,n){
-  const b=r1-a, c=c1-a, d=n-r1-c1+a;
-  if([a,b,c,d].some(v=>v<0)) return 0;
-  const logp = logChoose(c1,a)+logChoose(n-c1,r1-a)-logChoose(n,r1);
-  return Math.exp(logp);
-}
-function fisherExact2x2(obs){
-  const r1=obs[0][0]+obs[0][1], r2=obs[1][0]+obs[1][1];
-  const c1=obs[0][0]+obs[1][0], c2=obs[0][1]+obs[1][1];
-  const n=r1+r2, aObs=obs[0][0];
-  const pObs=hypergeomP(aObs,r1,c1,n);
-  const aMin=Math.max(0,r1-c2), aMax=Math.min(r1,c1);
-  let pTwo=0;
-  for(let a=aMin;a<=aMax;a++){
-    const p=hypergeomP(a,r1,c1,n);
-    if(p<=pObs+1e-12) pTwo+=p;
-  }
-  return {pTwo,pObs};
-}
-
-// ===== 统计计算 =====
-function expectedCounts(obs){
-  const r=obs.length, c=obs[0].length;
-  const rowSums=obs.map(row=>row.reduce((a,b)=>a+b,0));
-  const colSums=Array.from({length:c},(_,j)=>obs.reduce((a,row)=>a+row[j],0));
-  const n=rowSums.reduce((a,b)=>a+b,0);
-  const E=obs.map((row,i)=>row.map((_,j)=> n? (rowSums[i]*colSums[j])/n : 0 ));
-  return {E,rowSums,colSums,n};
-}
-function chiSquareStatistic(obs,E){
-  let chi2=0, contrib=obs.map((row,i)=>row.map((O,j)=>{const v=E[i][j]? ((O-E[i][j])**2)/E[i][j]:0; chi2+=v; return v;}));
-  return {chi2,contrib};
-}
-function chiSquareYates2x2(obs){
-  const a=obs[0][0], b=obs[0][1], c=obs[1][0], d=obs[1][1];
-  const n=a+b+c+d, num=Math.abs(a*d-b*c)-0.5*n, denom=(a+b)*(c+d)*(a+c)*(b+d);
-  const v= denom? (n*num*num)/denom : 0; return v<0?0:v;
-}
-function chiSquare2x2Special(obs){
-  const a=obs[0][0], b=obs[0][1], c=obs[1][0], d=obs[1][1];
-  const n=a+b+c+d, num=(a*d-b*c)**2 * n, denom=(a+b)*(c+d)*(a+c)*(b+d);
-  return denom? num/denom : 0;
-}
-function minExpected(E){
-  let m=Infinity; for(let i=0;i<E.length;i++) for(let j=0;j<E[0].length;j++) m=Math.min(m,E[i][j]); return m;
-}
-
-// ===== UI & 交互 =====
-const elRows=document.getElementById('rows');
-const elCols=document.getElementById('cols');
-const elMethod=document.getElementById('method');
-const wrap=document.getElementById('tableWrap');
-
-let r=2,c=2;
-let obs = Array.from({length:r},()=>Array.from({length:c},()=>10));
-
-function renderTable(){
-  wrap.innerHTML='';
-  const table=document.createElement('table');
-  const thead=document.createElement('thead');
-  const trh=document.createElement('tr');
-  trh.appendChild(document.createElement('th'));
-  for(let j=0;j<c;j++){const th=document.createElement('th');th.textContent='列'+(j+1);trh.appendChild(th);}
-  thead.appendChild(trh); table.appendChild(thead);
-  const tbody=document.createElement('tbody');
-  for(let i=0;i<r;i++){const tr=document.createElement('tr');const th=document.createElement('th');th.textContent='行'+(i+1);tr.appendChild(th);
-    for(let j=0;j<c;j++){const td=document.createElement('td');const inp=document.createElement('input');inp.type='number';inp.min='0';inp.step='1';inp.value=obs[i][j];
-      inp.style.width='80px';inp.style.textAlign='right';inp.style.padding='6px 8px';inp.style.border='1px solid var(--border)';inp.style.borderRadius='12px';
-      inp.addEventListener('input',e=>{const v=Math.max(0,Math.floor(Number(e.target.value)||0)); obs[i][j]=v; compute();});
-      td.appendChild(inp); tr.appendChild(td);}
-    tbody.appendChild(tr);
-  }
-  table.appendChild(tbody);
-  wrap.appendChild(table);
-}
-
-function ensureSize(newR,newC){
-  const next=Array.from({length:newR},(_,i)=>Array.from({length:newC},(_,j)=> (obs[i]?.[j] ?? 0)));
-  obs=next; r=newR; c=newC;
-}
-
-function decideMethod(n,minE,is2x2){
-  if(is2x2){
-    if(n<40 || minE<1) return 'fisher';
-    if(n>=40 && minE>=5) return 'pearson_or_special';
-    if(n>=40 && minE>=1 && minE<5) return 'yates';
-  }else{
-    if(n>=40 && minE>=5) return 'pearson_rc';
-    if(minE<1) return 'invalid_rc';
-    return 'caution_rc';
-  }
-  return 'pearson_rc';
-}
-
-function numberFmt(x, digits=3){
-  if(!isFinite(x)) return '—';
-  return (+x).toFixed(digits);
-}
-
-function compute(){
-  const {E,rowSums,colSums,n} = expectedCounts(obs);
-  const df=(r-1)*(c-1);
-  const {chi2,contrib}=chiSquareStatistic(obs,E);
-  const minEVal = isFinite(minExpected(E))? minExpected(E) : 0;
-  // 更新顶部汇总
-  document.getElementById('n').textContent = n;
-  document.getElementById('df').textContent = df;
-  document.getElementById('minE').textContent = numberFmt(minEVal);
-  // 适用性检查
-  const checks=document.getElementById('checks');
-  const countLT5 = E.flat().filter(v=>v<5).length;
-  checks.innerHTML = ''
-    + `<div><span class="dot ${n>=40?'green':'red'}"></span> n ≥ 40</div>`
-    + `<div><span class="dot ${minEVal>=5?'green':'yellow'}"></span> 所有 E ≥ 5（有 ${countLT5} 个 E<5）</div>`
-    + `<div><span class="dot ${minEVal>=1?'green':'red'}"></span> 无 E < 1</div>`;
-  // 推荐方法
-  const decision = decideMethod(n,minEVal,(r===2 && c===2));
-  const decisionText={
-    pearson_or_special:'2×2 Pearson χ²（或专用公式）',
-    yates:'2×2 Yates 连续性校正',
-    fisher:'2×2 Fisher 确切概率',
-    pearson_rc:'r×c Pearson χ²',
-    caution_rc:'r×c：存在 E<5，谨慎使用χ²或合并类别',
-    invalid_rc:'r×c：存在 E<1，χ²不适用'
-  }[decision];
-  document.getElementById('rec').textContent=decisionText;
-  // 选择方法
-  let used = elMethod.value==='auto' ? decision : elMethod.value;
-  let methodLabel='—', statVal=null, p=null;
-  if(r===2 && c===2){
-    if(used==='fisher'){
-      const {pTwo}=fisherExact2x2(obs);
-      methodLabel='Fisher 确切概率（双侧）'; p=pTwo;
-    }else if(used==='yates'){
-      const v=chiSquareYates2x2(obs); methodLabel='2×2 连续性校正的 χ² (Yates)'; statVal=v; p=1-chi2cdf(v,1);
-    }else if(used==='special'){
-      const v=chiSquare2x2Special(obs); methodLabel='2×2 专用公式的 χ²'; statVal=v; p=1-chi2cdf(v,1);
-    }else{ // pearson
-      methodLabel='Pearson χ²'; statVal=chi2; p=1-chi2cdf(statVal,1);
+    function gammap(a, x) {
+      if (x <= 0) return 0;
+      if (x < a + 1) {
+        let ap = a;
+        let sum = 1 / a;
+        let del = sum;
+        for (let n = 1; n <= 100; n += 1) {
+          ap += 1;
+          del *= x / ap;
+          sum += del;
+          if (Math.abs(del) < Math.abs(sum) * 1e-14) break;
+        }
+        return sum * Math.exp(-x + a * Math.log(x) - gammaln(a));
+      }
+      let b = x + 1 - a;
+      let c = 1 / 1e-30;
+      let d = 1 / b;
+      let h = d;
+      for (let i = 1; i <= 100; i += 1) {
+        const an = -i * (i - a);
+        b += 2;
+        d = an * d + b;
+        if (Math.abs(d) < 1e-30) d = 1e-30;
+        c = b + an / c;
+        if (Math.abs(c) < 1e-30) c = 1e-30;
+        d = 1 / d;
+        const del = d * c;
+        h *= del;
+        if (Math.abs(del - 1) < 1e-14) break;
+      }
+      return 1 - Math.exp(-x + a * Math.log(x) - gammaln(a)) * h;
     }
-  }else{
-    methodLabel='Pearson χ² (r×c)'; statVal=chi2; p=1-chi2cdf(statVal,df);
-  }
-  document.getElementById('methodLabel').textContent = methodLabel;
-  document.getElementById('override').textContent = (elMethod.value!=='auto')? '（已手动覆盖推荐方法）':'';
-  document.getElementById('stat').textContent = (statVal===null? '—' : ('χ² = '+ numberFmt(statVal,4)));
-  document.getElementById('pval').textContent = (p===null? '—' : (p.toPrecision(5)));
-  // 期望与贡献表
-  const expWrap=document.getElementById('expTable'); expWrap.innerHTML='';
-  const t=document.createElement('table'); const th=document.createElement('thead'); const thr=document.createElement('tr');
-  thr.appendChild(document.createElement('th'));
-  for(let j=0;j<c;j++){const h=document.createElement('th');h.textContent='列'+(j+1);thr.appendChild(h);} th.appendChild(thr); t.appendChild(th);
-  const tb=document.createElement('tbody');
-  for(let i=0;i<r;i++){const tr=document.createElement('tr');const h=document.createElement('th');h.textContent='行'+(i+1);tr.appendChild(h);
-    for(let j=0;j<c;j++){const td=document.createElement('td');td.className='right mono';td.textContent=numberFmt(E[i][j])+'  |  '+numberFmt(contrib[i][j]); tr.appendChild(td);}
-    tb.appendChild(tr);
-  }
-  t.appendChild(tb); expWrap.appendChild(t);
-  // 行列合计
-  const rowDiv=document.getElementById('rowSums'); const colDiv=document.getElementById('colSums');
-  rowDiv.innerHTML=''; colDiv.innerHTML='';
-  const tr1=document.createElement('table'); const tb1=document.createElement('tbody');
-  for(let i=0;i<r;i++){const tr=document.createElement('tr');const thd=document.createElement('th');thd.textContent='行'+(i+1);const td=document.createElement('td');td.textContent=rowSums[i];
-    tr.appendChild(thd); tr.appendChild(td); tb1.appendChild(tr);} tr1.appendChild(tb1); rowDiv.appendChild(tr1);
-  const tr2=document.createElement('table'); const tb2=document.createElement('tbody'); const trc=document.createElement('tr'); trc.appendChild(document.createElement('th'));
-  for(let j=0;j<c;j++){const thd=document.createElement('th');thd.textContent='列'+(j+1); trc.appendChild(thd);} tb2.appendChild(trc);
-  const trv=document.createElement('tr'); const thv=document.createElement('th');thv.textContent='合计'; trv.appendChild(thv);
-  for(let j=0;j<c;j++){const td=document.createElement('td');td.textContent=colSums[j]; trv.appendChild(td);} tb2.appendChild(trv);
-  tr2.appendChild(tb2); colDiv.appendChild(tr2);
-}
 
-function randomize(){
-  for(let i=0;i<r;i++) for(let j=0;j<c;j++) obs[i][j]=Math.floor(Math.random()*20);
-  renderTable(); // 修复：刷新输入表格
-  compute();
-}
-function strong(){
-  for(let i=0;i<r;i++) for(let j=0;j<c;j++) obs[i][j]=(i===j?15:3);
-  renderTable(); // 修复：刷新输入表格
-  compute();
-}
-function zero(){
-  for(let i=0;i<r;i++) for(let j=0;j<c;j++) obs[i][j]=0;
-  renderTable(); // 修复：刷新输入表格
-  compute();
-}
+    function chi2cdf(x, k) {
+      return gammap(k / 2, x / 2);
+    }
 
-elRows.addEventListener('input',e=>{const v=Math.max(2,Math.min(8,parseInt(e.target.value)||2)); elRows.value=v; ensureSize(v,c); renderTable(); compute();});
-elCols.addEventListener('input',e=>{const v=Math.max(2,Math.min(8,parseInt(e.target.value)||2)); elCols.value=v; ensureSize(r,v); renderTable(); compute();});
-elMethod.addEventListener('change',()=>compute());
-document.getElementById('btnRnd').addEventListener('click',randomize);
-document.getElementById('btnStrong').addEventListener('click',strong);
-document.getElementById('btnZero').addEventListener('click',zero);
+    function logChoose(n, k) {
+      if (k < 0 || k > n) return -Infinity;
+      return gammaln(n + 1) - gammaln(k + 1) - gammaln(n - k + 1);
+    }
 
-renderTable(); compute();
-</script>
+    function hypergeomP(a, r1, c1, n) {
+      const b = r1 - a;
+      const c = c1 - a;
+      const d = n - r1 - c1 + a;
+      if ([a, b, c, d].some((value) => value < 0)) return 0;
+      const logp = logChoose(c1, a) + logChoose(n - c1, r1 - a) - logChoose(n, r1);
+      return Math.exp(logp);
+    }
+
+    function fisherExact2x2(obs) {
+      const r1 = obs[0][0] + obs[0][1];
+      const c1 = obs[0][0] + obs[1][0];
+      const n = obs[0][0] + obs[0][1] + obs[1][0] + obs[1][1];
+      const aObs = obs[0][0];
+      const pObs = hypergeomP(aObs, r1, c1, n);
+      const aMin = Math.max(0, r1 - (n - c1));
+      const aMax = Math.min(r1, c1);
+      let pTwo = 0;
+      for (let a = aMin; a <= aMax; a += 1) {
+        const p = hypergeomP(a, r1, c1, n);
+        if (p <= pObs + 1e-12) pTwo += p;
+      }
+      return { pTwo, pObs };
+    }
+
+    function expectedCounts(obs) {
+      const r = obs.length;
+      const c = obs[0].length;
+      const rowSums = obs.map((row) => row.reduce((sum, value) => sum + value, 0));
+      const colSums = Array.from({ length: c }, (_, columnIndex) =>
+        obs.reduce((sum, row) => sum + row[columnIndex], 0)
+      );
+      const n = rowSums.reduce((sum, value) => sum + value, 0);
+      const E = obs.map((row, i) =>
+        row.map((_, j) => (n ? (rowSums[i] * colSums[j]) / n : 0))
+      );
+      return { E, rowSums, colSums, n };
+    }
+
+    function chiSquareStatistic(obs, expected) {
+      let chi2 = 0;
+      const contrib = obs.map((row, i) =>
+        row.map((observed, j) => {
+          const value = expected[i][j] ? ((observed - expected[i][j]) ** 2) / expected[i][j] : 0;
+          chi2 += value;
+          return value;
+        })
+      );
+      return { chi2, contrib };
+    }
+
+    function chiSquareYates2x2(obs) {
+      const a = obs[0][0];
+      const b = obs[0][1];
+      const c = obs[1][0];
+      const d = obs[1][1];
+      const n = a + b + c + d;
+      const numerator = Math.abs(a * d - b * c) - 0.5 * n;
+      const denominator = (a + b) * (c + d) * (a + c) * (b + d);
+      const value = denominator ? (n * numerator * numerator) / denominator : 0;
+      return value < 0 ? 0 : value;
+    }
+
+    function chiSquare2x2Special(obs) {
+      const a = obs[0][0];
+      const b = obs[0][1];
+      const c = obs[1][0];
+      const d = obs[1][1];
+      const n = a + b + c + d;
+      const numerator = (a * d - b * c) ** 2 * n;
+      const denominator = (a + b) * (c + d) * (a + c) * (b + d);
+      return denominator ? numerator / denominator : 0;
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function formatNumber(value, digits = 3) {
+      return Number.isFinite(value) ? Number(value).toFixed(digits) : "—";
+    }
+
+    function formatPercent(value) {
+      return Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : "—";
+    }
+
+    function formatPValue(value) {
+      if (!Number.isFinite(value)) return "—";
+      if (value < 0.0001) return "< 0.0001";
+      return value.toFixed(4);
+    }
+
+    function effectStrength(value) {
+      if (!Number.isFinite(value)) return "无法判断";
+      if (value < 0.1) return "很弱";
+      if (value < 0.3) return "较弱";
+      if (value < 0.5) return "中等";
+      return "较强";
+    }
+
+    function getEffectLabel(r, c) {
+      return r === 2 && c === 2 ? "Phi 系数 φ" : "Cramér's V";
+    }
+
+    function getEffectValue(chi2, n, r, c) {
+      if (!n) return NaN;
+      if (r === 2 && c === 2) return Math.sqrt(chi2 / n);
+      const k = Math.min(r - 1, c - 1);
+      return k > 0 ? Math.sqrt(chi2 / (n * k)) : NaN;
+    }
+
+    function findLargestContribution(contrib) {
+      let maxValue = -Infinity;
+      let maxRow = 0;
+      let maxCol = 0;
+      for (let i = 0; i < contrib.length; i += 1) {
+        for (let j = 0; j < contrib[0].length; j += 1) {
+          if (contrib[i][j] > maxValue) {
+            maxValue = contrib[i][j];
+            maxRow = i;
+            maxCol = j;
+          }
+        }
+      }
+      return { row: maxRow, col: maxCol, value: maxValue };
+    }
+
+    function describeRecommendation(summary) {
+      if (summary.is2x2) {
+        if (summary.n < 40 || summary.lt1Count > 0) {
+          return {
+            method: "fisher",
+            label: "Fisher 确切概率",
+            note: "样本量较小或存在 E < 1，优先使用 Fisher 更稳妥。"
+          };
+        }
+        if (summary.lt5Count > 0) {
+          return {
+            method: "yates",
+            label: "Yates 连续性校正",
+            note: "2×2 表中存在 E < 5，使用 Yates 可降低近似误差。"
+          };
+        }
+        return {
+          method: "pearson",
+          label: "Pearson χ²",
+          note: "当前 2×2 表满足近似条件，可直接使用 Pearson χ²。"
+        };
+      }
+
+      if (summary.lt1Count > 0) {
+        return {
+          method: "pearson",
+          label: "Pearson χ²（仅供参考）",
+          note: "一般 r×c 表中存在 E < 1，Pearson 结果仅供课堂参考，建议合并类别或考虑更稳健方法。"
+        };
+      }
+
+      if (summary.lt5Ratio > 0.2) {
+        return {
+          method: "pearson",
+          label: "Pearson χ²（谨慎解释）",
+          note: "E < 5 的单元格超过 20%，当前仍显示 Pearson 结果，但解释时应明确条件不足。"
+        };
+      }
+
+      return {
+        method: "pearson",
+        label: "Pearson χ²",
+        note: "当前一般 r×c 表满足常见近似条件，可使用 Pearson χ²。"
+      };
+    }
+
+    function optionDisabledForCurrentShape(optionValue, is2x2) {
+      return !is2x2 && ["special2x2", "yates", "fisher"].includes(optionValue);
+    }
+
+    const elRows = document.getElementById("rows");
+    const elCols = document.getElementById("cols");
+    const elMethod = document.getElementById("method");
+    const elAlpha = document.getElementById("alpha");
+    const tableWrap = document.getElementById("tableWrap");
+
+    let r = 2;
+    let c = 2;
+    let obs = [
+      [18, 82],
+      [35, 65]
+    ];
+
+    function ensureSize(newR, newC) {
+      obs = Array.from({ length: newR }, (_, i) =>
+        Array.from({ length: newC }, (_, j) => (obs[i] && Number.isFinite(obs[i][j]) ? obs[i][j] : 0))
+      );
+      r = newR;
+      c = newC;
+    }
+
+    function syncMethodOptions() {
+      const is2x2 = r === 2 && c === 2;
+      Array.from(elMethod.options).forEach((option) => {
+        const disabled = optionDisabledForCurrentShape(option.value, is2x2);
+        option.disabled = disabled;
+      });
+      if (optionDisabledForCurrentShape(elMethod.value, is2x2)) {
+        elMethod.value = "auto";
+      }
+    }
+
+    function renderInputTable() {
+      tableWrap.innerHTML = "";
+      const table = document.createElement("table");
+      const thead = document.createElement("thead");
+      const headRow = document.createElement("tr");
+      headRow.appendChild(document.createElement("th"));
+      for (let j = 0; j < c; j += 1) {
+        const th = document.createElement("th");
+        th.textContent = `列${j + 1}`;
+        headRow.appendChild(th);
+      }
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+      for (let i = 0; i < r; i += 1) {
+        const row = document.createElement("tr");
+        const header = document.createElement("th");
+        header.textContent = `行${i + 1}`;
+        row.appendChild(header);
+
+        for (let j = 0; j < c; j += 1) {
+          const td = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "number";
+          input.min = "0";
+          input.step = "1";
+          input.value = String(obs[i][j]);
+          input.addEventListener("input", (event) => {
+            const value = Math.max(0, Math.floor(Number(event.target.value) || 0));
+            obs[i][j] = value;
+            compute();
+          });
+          td.appendChild(input);
+          row.appendChild(td);
+        }
+        tbody.appendChild(row);
+      }
+      table.appendChild(tbody);
+      tableWrap.appendChild(table);
+    }
+
+    function renderSimpleTable(containerId, rows) {
+      const wrap = document.getElementById(containerId);
+      wrap.innerHTML = "";
+      const table = document.createElement("table");
+      const tbody = document.createElement("tbody");
+      rows.forEach((cells) => {
+        const tr = document.createElement("tr");
+        cells.forEach((cell, index) => {
+          const element = document.createElement(index === 0 ? "th" : "td");
+          element.textContent = cell;
+          tr.appendChild(element);
+        });
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+    }
+
+    function loadPreset(name) {
+      if (name === "vaccine") {
+        ensureSize(2, 2);
+        obs = [
+          [18, 82],
+          [35, 65]
+        ];
+      } else if (name === "rare") {
+        ensureSize(2, 2);
+        obs = [
+          [1, 19],
+          [8, 12]
+        ];
+      } else if (name === "severity") {
+        ensureSize(3, 3);
+        obs = [
+          [28, 14, 8],
+          [20, 18, 12],
+          [12, 15, 23]
+        ];
+      }
+      elRows.value = String(r);
+      elCols.value = String(c);
+      elMethod.value = "auto";
+      syncMethodOptions();
+      renderInputTable();
+      compute();
+    }
+
+    function randomize() {
+      obs = obs.map((row) => row.map(() => Math.floor(Math.random() * 25)));
+      renderInputTable();
+      compute();
+    }
+
+    function zero() {
+      obs = obs.map((row) => row.map(() => 0));
+      renderInputTable();
+      compute();
+    }
+
+    function compute() {
+      const alpha = clamp(Number(elAlpha.value) || 0.05, 0.001, 0.2);
+      elAlpha.value = alpha.toFixed(3).replace(/0+$/, "").replace(/\.$/, "");
+
+      const expectedSummary = expectedCounts(obs);
+      const expected = expectedSummary.E;
+      const rowSums = expectedSummary.rowSums;
+      const colSums = expectedSummary.colSums;
+      const n = expectedSummary.n;
+      const df = (r - 1) * (c - 1);
+      const pearsonResult = chiSquareStatistic(obs, expected);
+      const pearsonChi2 = pearsonResult.chi2;
+      const contrib = pearsonResult.contrib;
+
+      const flatExpected = expected.flat();
+      const totalCells = flatExpected.length || 1;
+      const lt5Count = flatExpected.filter((value) => value < 5).length;
+      const lt1Count = flatExpected.filter((value) => value < 1).length;
+      const minE = flatExpected.length ? Math.min(...flatExpected) : 0;
+      const lt5Ratio = lt5Count / totalCells;
+      const is2x2 = r === 2 && c === 2;
+      const summary = { n, lt1Count, lt5Count, lt5Ratio, is2x2 };
+      const recommendation = describeRecommendation(summary);
+
+      let usedMethod = elMethod.value === "auto" ? recommendation.method : elMethod.value;
+      if (optionDisabledForCurrentShape(usedMethod, is2x2)) {
+        usedMethod = "pearson";
+      }
+
+      let methodLabel = "Pearson χ²";
+      let statLabel = "χ² = " + formatNumber(pearsonChi2, 4);
+      let pValue = 1 - chi2cdf(pearsonChi2, df);
+      let overrideNote = elMethod.value === "auto" ? "当前使用自动推荐。" : "当前为手动覆盖推荐方法。";
+      let statNote = "统计量默认显示 Pearson χ²；若采用 Fisher，则统计量位置显示为 —。";
+
+      if (is2x2) {
+        if (usedMethod === "fisher") {
+          methodLabel = "Fisher 确切概率（双侧）";
+          pValue = fisherExact2x2(obs).pTwo;
+          statLabel = "—";
+          statNote = "Fisher 检验直接基于精确概率计算 P 值，不输出 χ² 统计量。";
+        } else if (usedMethod === "yates") {
+          const value = chiSquareYates2x2(obs);
+          methodLabel = "2×2 Yates 连续性校正";
+          statLabel = "χ² = " + formatNumber(value, 4);
+          pValue = 1 - chi2cdf(value, 1);
+          statNote = "Yates 校正用于 2×2 表中期望频数偏小的情形。";
+        } else if (usedMethod === "special2x2") {
+          const value = chiSquare2x2Special(obs);
+          methodLabel = "2×2 专用公式 χ²";
+          statLabel = "χ² = " + formatNumber(value, 4);
+          pValue = 1 - chi2cdf(value, 1);
+          statNote = "专用公式与 Pearson χ² 在 2×2 情形下数值等价。";
+        }
+      }
+
+      const effect = getEffectValue(pearsonChi2, n, r, c);
+      const effectLabel = getEffectLabel(r, c);
+      const effectText = effectStrength(effect);
+      const strongest = findLargestContribution(contrib);
+      const recommendationText = recommendation.label;
+      const conclusion = Number.isFinite(pValue) && pValue <= alpha
+        ? `在 α = ${alpha.toFixed(3).replace(/0+$/, "").replace(/\.$/, "")} 水平下，拒绝原假设。当前结果提示行变量与列变量之间存在统计学关联；同时效应量为 ${effectLabel} = ${formatNumber(effect, 3)}，关联强度可概括为“${effectText}”。`
+        : `在 α = ${alpha.toFixed(3).replace(/0+$/, "").replace(/\.$/, "")} 水平下，尚不能拒绝原假设。当前数据未提供足够证据说明行变量与列变量存在统计学关联；若研究上仍怀疑存在差异，应结合样本量和效应量继续判断。`;
+
+      document.getElementById("n").textContent = String(n);
+      document.getElementById("df").textContent = String(df);
+      document.getElementById("minE").textContent = formatNumber(minE, 3);
+      document.getElementById("lt5Cells").textContent = String(lt5Count);
+      document.getElementById("lt5Ratio").textContent = formatPercent(lt5Ratio);
+
+      const checks = [
+        {
+          state: n >= 40 ? "ok" : "warn",
+          text: `样本量 n = ${n}。2×2 表中，n < 40 时优先考虑 Fisher。`
+        },
+        {
+          state: lt1Count === 0 ? "ok" : "bad",
+          text: `E < 1 的单元格数：${lt1Count}。只要出现 E < 1，就说明近似条件明显不足。`
+        },
+        {
+          state: lt5Ratio <= 0.2 ? "ok" : "warn",
+          text: `E < 5 的单元格占比：${formatPercent(lt5Ratio)}。一般 r×c 表希望不超过 20%。`
+        }
+      ];
+
+      const checksWrap = document.getElementById("checks");
+      checksWrap.innerHTML = "";
+      checks.forEach((item) => {
+        const row = document.createElement("div");
+        row.className = "check-item";
+        row.innerHTML = `<span class="dot ${item.state}"></span><span>${item.text}</span>`;
+        checksWrap.appendChild(row);
+      });
+
+      document.getElementById("recPill").textContent = `推荐：${recommendationText}`;
+      document.getElementById("alphaPill").textContent = `α = ${alpha.toFixed(3).replace(/0+$/, "").replace(/\.$/, "")}`;
+      document.getElementById("methodReason").textContent = recommendation.note;
+
+      document.getElementById("methodLabel").textContent = methodLabel;
+      document.getElementById("overrideNote").textContent = overrideNote;
+      document.getElementById("stat").textContent = statLabel;
+      document.getElementById("statNote").textContent = statNote;
+      document.getElementById("pval").textContent = formatPValue(pValue);
+      document.getElementById("effectLabel").textContent = effectLabel;
+      document.getElementById("effectValue").textContent = formatNumber(effect, 3);
+      document.getElementById("effectNote").textContent = `基于 Pearson χ² 计算，当前效应量可概括为“${effectText}”。`;
+      document.getElementById("conclusion").textContent = conclusion;
+
+      document.getElementById("heroRecommendation").textContent = recommendationText;
+      document.getElementById("heroRecommendationNote").textContent = recommendation.note;
+      document.getElementById("heroPValue").textContent = formatPValue(pValue);
+      document.getElementById("heroEffect").textContent = `${effectLabel === "Phi 系数 φ" ? "φ" : "V"} = ${formatNumber(effect, 3)}`;
+      document.getElementById("heroEffectNote").textContent = `当前效应量强度：${effectText}。`;
+      document.getElementById("heroContributor").textContent = `行${strongest.row + 1} × 列${strongest.col + 1}`;
+      document.getElementById("heroContributorNote").textContent = `该单元格贡献值最大，为 ${formatNumber(strongest.value, 3)}。`;
+      document.getElementById("teachingContributor").textContent = `当前贡献最大的单元格是 行${strongest.row + 1} × 列${strongest.col + 1}，贡献值为 ${formatNumber(strongest.value, 3)}。可优先解释该格的观察值为何明显偏离期望值。`;
+
+      const expWrap = document.getElementById("expTable");
+      expWrap.innerHTML = "";
+      const expTable = document.createElement("table");
+      const expHead = document.createElement("thead");
+      const expHeadRow = document.createElement("tr");
+      expHeadRow.appendChild(document.createElement("th"));
+      for (let j = 0; j < c; j += 1) {
+        const th = document.createElement("th");
+        th.textContent = `列${j + 1}`;
+        expHeadRow.appendChild(th);
+      }
+      expHead.appendChild(expHeadRow);
+      expTable.appendChild(expHead);
+      const expBody = document.createElement("tbody");
+      for (let i = 0; i < r; i += 1) {
+        const tr = document.createElement("tr");
+        const th = document.createElement("th");
+        th.textContent = `行${i + 1}`;
+        tr.appendChild(th);
+        for (let j = 0; j < c; j += 1) {
+          const td = document.createElement("td");
+          td.innerHTML = `<div class="mono">E = ${formatNumber(expected[i][j], 3)}</div><div class="mono">贡献 = ${formatNumber(contrib[i][j], 3)}</div>`;
+          tr.appendChild(td);
+        }
+        expBody.appendChild(tr);
+      }
+      expTable.appendChild(expBody);
+      expWrap.appendChild(expTable);
+
+      renderSimpleTable(
+        "rowSums",
+        rowSums.map((value, index) => [`行${index + 1}`, String(value)])
+      );
+      renderSimpleTable(
+        "colSums",
+        [
+          ["", ...Array.from({ length: c }, (_, index) => `列${index + 1}`)],
+          ["合计", ...colSums.map((value) => String(value))]
+        ]
+      );
+    }
+
+    elRows.addEventListener("input", (event) => {
+      const value = clamp(parseInt(event.target.value, 10) || 2, 2, 8);
+      elRows.value = String(value);
+      ensureSize(value, c);
+      syncMethodOptions();
+      renderInputTable();
+      compute();
+    });
+
+    elCols.addEventListener("input", (event) => {
+      const value = clamp(parseInt(event.target.value, 10) || 2, 2, 8);
+      elCols.value = String(value);
+      ensureSize(r, value);
+      syncMethodOptions();
+      renderInputTable();
+      compute();
+    });
+
+    elMethod.addEventListener("change", compute);
+    elAlpha.addEventListener("input", compute);
+
+    document.getElementById("presetVaccine").addEventListener("click", () => loadPreset("vaccine"));
+    document.getElementById("presetRare").addEventListener("click", () => loadPreset("rare"));
+    document.getElementById("presetSeverity").addEventListener("click", () => loadPreset("severity"));
+    document.getElementById("btnRandom").addEventListener("click", randomize);
+    document.getElementById("btnZero").addEventListener("click", zero);
+
+    syncMethodOptions();
+    renderInputTable();
+    compute();
+  </script>
 </body>
 </html>
