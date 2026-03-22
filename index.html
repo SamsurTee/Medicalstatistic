@@ -568,6 +568,7 @@
         </p>
         <div class="hero-actions">
           <a class="primary" href="#catalog">查看全部模块</a>
+          <a class="secondary" href="course_coverage_map.html">查看课程覆盖地图</a>
           <a class="secondary" href="https://github.com/SamsurTee/Medicalstatistic" target="_blank" rel="noopener">打开 GitHub 仓库</a>
         </div>
         <ul class="hero-notes">
@@ -580,9 +581,9 @@
       <aside class="hero-side hero-card">
         <div class="mini-grid">
           <div class="mini-card">
-            <div class="label">互动模块</div>
-            <div class="value">9</div>
-            <div class="note">从基础统计描述到推断与回归，形成完整教学链条。</div>
+            <div class="label">公开页面</div>
+            <div class="value">10</div>
+            <div class="note">从基础统计描述到推断与回归，再到课程覆盖地图，形成更完整的公开入口。</div>
           </div>
           <div class="mini-card">
             <div class="label">部署方式</div>
@@ -673,6 +674,33 @@
     <section class="panel">
       <div class="section-head">
         <div>
+          <p class="eyebrow">Coverage</p>
+          <h2>课程主题覆盖</h2>
+        </div>
+        <p>如果你需要把网站和完整课程结构对齐，但又不希望公开内部课件、题库和案例数据，可以先看这张公开安全的覆盖地图。</p>
+      </div>
+      <div class="usage-grid">
+        <article class="usage-card">
+          <h3>已经较完整覆盖</h3>
+          <p>定量与定性描述统计、正态分布、参数估计、卡方检验、Logistic 回归和 OLS 回归已经有可直接使用的教学页面。</p>
+        </article>
+        <article class="usage-card">
+          <h3>仍建议补充</h3>
+          <p>研究设计、假设检验总览、ANOVA、多元线性回归、非参数检验和生存分析仍然适合继续扩展为公开模块。</p>
+        </article>
+        <article class="usage-card">
+          <h3>公开安全边界</h3>
+          <p>未来新增内容优先使用合成数据、通用案例和方法框架，不直接上传本地讲义、试题、案例数据或课程视频。</p>
+        </article>
+      </div>
+      <div class="hero-actions" style="margin-top:18px">
+        <a class="primary" href="course_coverage_map.html">打开课程覆盖地图</a>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
           <p class="eyebrow">Teaching Modes</p>
           <h2>怎么把它用进课堂</h2>
         </div>
@@ -716,6 +744,18 @@
 
   <script>
     const labs = [
+      {
+        file: "course_coverage_map.html",
+        title: "课程覆盖地图与扩展建议",
+        en: "Course Coverage Map",
+        category: "课程导览",
+        level: "总览",
+        language: "中文",
+        summary: "说明网站已覆盖哪些课程主题、还缺哪些公开安全模块，以及哪些内部课程内容不应直接放到 GitHub。",
+        use: "适合在扩站或整理课程入口时，快速判断公开站点应该补什么、不该上传什么。",
+        focus: ["覆盖地图", "扩展建议", "公开安全", "主题缺口"],
+        order: 0
+      },
       {
         file: "quantitative_descriptive_statistics_single_file_teaching_page.html",
         title: "定量数据统计描述",

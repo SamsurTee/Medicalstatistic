@@ -118,6 +118,44 @@ bundle exec jekyll serve --livereload
 - 为分类资料和连续变量模块增加“课堂练习题 + 标准解释”。
 - 把页面中重复使用的样式抽成共享资源文件。
 
+## 基于课程主题仍建议补充的公开信息
+
+在不公开本地课程材料的前提下，站点仍然适合继续补充这些主题：
+
+- 绪论与研究设计导览页
+- 医学参考值范围与百分位数解释页
+- 假设检验总览与方法选择页
+- t 检验选择器或比较页
+- 方差分析（ANOVA）互动页
+- 相关分析独立页面
+- 多元线性回归入门页
+- 非参数检验决策页
+- 生存分析基础页
+
+这些内容最好采用：
+
+- 合成数据或公开数据
+- 通用医学研究场景
+- 方法框架、概念图和选择流程
+
+而不是直接复制课堂文件。
+
+## 不宜公开上传的内容
+
+为了避免泄露课程敏感信息，GitHub Pages 上不建议直接放入以下内容：
+
+- 原始课件文件，如 `.key`、`.pptx`、完整讲义 PDF
+- 考试、Quiz、翻转课堂题卡、PBL 作业材料
+- 真实案例数据、代码本、学生作业或评分相关文件
+- 版权受限阅读材料和课程配套 PDF
+- 带课程内部痕迹的录屏、视频和案例说明
+
+更安全的做法是：
+
+- 只公开整理后的主题说明
+- 使用抽象化案例和脱敏表达
+- 把“课程覆盖地图”和“扩展建议”做成独立页面
+
 ## English Summary
 
 This repository hosts a browser-only set of interactive teaching labs for medical statistics. Each lab is a standalone HTML page that can be opened locally or deployed directly through GitHub Pages. The project is designed to improve:
