@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>单因素方差分析实验页 | One-Way ANOVA Lab</title>
+  <meta
+    name="description"
+    content="公开安全的单因素 ANOVA 教学页面，用摘要统计量演示组间变异、组内变异、F 值和 η²。"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#fff7ee;--bg2:#f7eee0;--panel:rgba(255,255,255,.88);--card:#fff;--ink:#1f2937;--muted:#64748b;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,41,55,.12);--shadow:0 20px 44px rgba(31,41,55,.12)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.12),transparent 25%),radial-gradient(circle at top right,rgba(194,65,12,.1),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.8vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .mini-grid,.result-grid,.grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,41,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:24px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .layout{display:grid;grid-template-columns:1.18fr .92fr;gap:20px;align-items:start}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    .controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    label{display:block;margin-bottom:6px;font-size:14px;font-weight:700}
+    input{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px}
+    .btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--ink);padding:10px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),#115e59);color:#fff;border-color:transparent}
+    canvas{width:100%;height:420px;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.96));border:1px solid rgba(31,41,55,.08);border-radius:22px}
+    .result-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,41,55,.08);border-radius:18px;padding:16px}
+    .list{display:grid;gap:12px;margin-top:12px}
+    .list-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.74);border:1px solid rgba(31,41,55,.08)}
+    .list-item strong{display:block;margin-bottom:6px;font-size:15px}
+    @media (max-width:980px){.hero,.layout,.controls,.mini-grid,.result-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：方差分析</div>
+    </div>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">One-Way ANOVA Lab</p>
+        <h1>单因素方差分析实验页</h1>
+        <p class="lead">这页用公开安全的摘要统计量演示 ANOVA 的核心思路：不是分别做很多次 t 检验，而是先比较“组间变异”与“组内变异”的相对大小，再得到 F 值和总体结论。</p>
+        <div class="hero-points">
+          <div>ANOVA 先回答“至少有一组不同”，不直接告诉哪两组不同。</div>
+          <div>F 值越大，说明组间变异相对组内变异越突出。</div>
+          <div>公开网站上最适合讲方法框架和解释，不适合放课程内部题目或评分练习。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">核心比值</div><div class="value">MSB / MSW</div><div class="note">F 值本质上是两类方差估计之比。</div></div>
+        <div class="card mini-card"><div class="label">常见输出</div><div class="value">F, P, η²</div><div class="note">显著性和效应量都应给出。</div></div>
+        <div class="card mini-card"><div class="label">后续步骤</div><div class="value">事后比较</div><div class="note">总体显著后，通常还要做两两比较。</div></div>
+        <div class="card mini-card"><div class="label">易错点</div><div class="value">把多组当多次 t</div><div class="note">会增加第一类错误累计风险。</div></div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Means</p><h2>组均值与总体比较</h2></div>
+          <p>柱形图先让学生直观看见各组均值差异，再回到 F 统计量解释总体比较逻辑。</p>
+        </div>
+        <canvas id="anovaChart"></canvas>
+        <div class="result-grid">
+          <div class="result"><div class="label">F 值</div><div class="value" id="fValue">—</div><div class="note">越大通常表示组间差异相对更明显。</div></div>
+          <div class="result"><div class="label">P 值</div><div class="value" id="pValue">—</div><div class="note">先回答是否存在总体差异。</div></div>
+          <div class="result"><div class="label">η²</div><div class="value" id="etaValue">—</div><div class="note">帮助说明差异强度，而不仅是显著性。</div></div>
+          <div class="result"><div class="label">均方</div><div class="value" id="msValue">—</div><div class="note">MSB 与 MSW 是 F 值的直接组成部分。</div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Inputs</p><h2>三组摘要统计量</h2></div>
+          <p>只需各组 n、均值和 SD，就能演示 ANOVA 的核心计算逻辑。</p>
+        </div>
+        <div class="controls">
+          <div><label>组 A n</label><input id="n1" type="number" value="18" min="2" step="1" /></div>
+          <div><label>组 A mean</label><input id="m1" type="number" value="72" step="0.1" /></div>
+          <div><label>组 A SD</label><input id="s1" type="number" value="8" min="0.1" step="0.1" /></div>
+          <div><label>组 B n</label><input id="n2" type="number" value="20" min="2" step="1" /></div>
+          <div><label>组 B mean</label><input id="m2" type="number" value="79" step="0.1" /></div>
+          <div><label>组 B SD</label><input id="s2" type="number" value="7" min="0.1" step="0.1" /></div>
+          <div><label>组 C n</label><input id="n3" type="number" value="19" min="2" step="1" /></div>
+          <div><label>组 C mean</label><input id="m3" type="number" value="84" step="0.1" /></div>
+          <div><label>组 C SD</label><input id="s3" type="number" value="9" min="0.1" step="0.1" /></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn primary" id="btnCalc">计算 ANOVA</button>
+          <button class="btn" data-example="small">示例：差异较小</button>
+          <button class="btn" data-example="large">示例：差异较大</button>
+        </div>
+        <div class="list">
+          <div class="list-item"><strong>教学提醒</strong><p id="interpretation">先解释总体差异，再提醒学生：若要知道哪两组不同，还需要继续做事后比较。</p></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function logGamma(z){const p=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.3234287776531,-176.6150291621406,12.507343278686905,-0.13857109526572012,9.984369578019572e-6,1.5056327351493116e-7];if(z<0.5){return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*z))-logGamma(1-z);}z-=1;let x=p[0];for(let i=1;i<p.length;i++)x+=p[i]/(z+i);const t=z+7.5;return 0.5*Math.log(2*Math.PI)+(z+0.5)*Math.log(t)-t+Math.log(x);}
+    function betacf(a,b,x){const MAXIT=100,EPS=3e-7,FPMIN=1e-30;let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;for(let m=1;m<=MAXIT;m++){let m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<EPS)break;}return h;}
+    function betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;const bt=Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log(1-x));if(x<(a+1)/(a+b+2))return bt*betacf(a,b,x)/a;return 1-bt*betacf(b,a,1-x)/b;}
+    function fCDF(x,d1,d2){const z=(d1*x)/(d1*x+d2);return betai(d1/2,d2/2,z);}
+    function fmt(x,d=3){return Number.isFinite(x)?x.toFixed(d):"—";}
+    let chart = new Chart(document.getElementById("anovaChart"), { type: "bar", data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false } });
+
+    const examples = {
+      small: { n1: 20, m1: 72, s1: 8, n2: 19, m2: 74, s2: 7.5, n3: 18, m3: 76, s3: 8.2 },
+      large: { n1: 18, m1: 72, s1: 8, n2: 20, m2: 79, s2: 7, n3: 19, m3: 84, s3: 9 }
+    };
+
+    function calculate() {
+      const groups = [
+        { n: Number(document.getElementById("n1").value), m: Number(document.getElementById("m1").value), s: Number(document.getElementById("s1").value), label: "组 A" },
+        { n: Number(document.getElementById("n2").value), m: Number(document.getElementById("m2").value), s: Number(document.getElementById("s2").value), label: "组 B" },
+        { n: Number(document.getElementById("n3").value), m: Number(document.getElementById("m3").value), s: Number(document.getElementById("s3").value), label: "组 C" }
+      ];
+      const N = groups.reduce((sum, g) => sum + g.n, 0);
+      const grand = groups.reduce((sum, g) => sum + g.n * g.m, 0) / N;
+      const ssb = groups.reduce((sum, g) => sum + g.n * (g.m - grand) ** 2, 0);
+      const ssw = groups.reduce((sum, g) => sum + (g.n - 1) * g.s * g.s, 0);
+      const df1 = groups.length - 1;
+      const df2 = N - groups.length;
+      const msb = ssb / df1;
+      const msw = ssw / df2;
+      const f = msb / msw;
+      const p = 1 - fCDF(f, df1, df2);
+      const eta = ssb / (ssb + ssw);
+
+      chart.destroy();
+      chart = new Chart(document.getElementById("anovaChart"), {
+        type: "bar",
+        data: { labels: groups.map((g) => g.label), datasets: [{ label: "均值", data: groups.map((g) => g.m), backgroundColor: ["rgba(15,118,110,.65)", "rgba(194,65,12,.6)", "rgba(59,130,246,.6)"] }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+
+      document.getElementById("fValue").textContent = fmt(f, 3);
+      document.getElementById("pValue").textContent = p < 0.0001 ? "< 0.0001" : fmt(p, 4);
+      document.getElementById("etaValue").textContent = fmt(eta, 3);
+      document.getElementById("msValue").textContent = `MSB=${fmt(msb,2)} / MSW=${fmt(msw,2)}`;
+      document.getElementById("interpretation").textContent = `当前 F = ${fmt(f,3)}，P ${p < 0.0001 ? "< 0.0001" : `= ${fmt(p,4)}`}，η² = ${fmt(eta,3)}。教学中建议先解释“是否存在总体差异”，再提醒学生如果要定位具体组间差异，还要继续做事后比较。`;
+    }
+
+    document.getElementById("btnCalc").addEventListener("click", calculate);
+    document.querySelectorAll("[data-example]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const preset = examples[button.getAttribute("data-example")];
+        Object.keys(preset).forEach((key) => document.getElementById(key).value = preset[key]);
+        calculate();
+      });
+    });
+    calculate();
+  </script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>t 检验实验页 | T-Test Lab</title>
+  <meta
+    name="description"
+    content="公开安全的 t 检验实验页，支持单样本、独立样本和配对样本情形，并展示检验统计量、P 值和置信区间。"
+  />
+  <style>
+    :root{--bg:#fff7ee;--bg2:#f7eee0;--panel:rgba(255,255,255,.88);--card:#fff;--ink:#1f2937;--muted:#64748b;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,41,55,.12);--shadow:0 20px 44px rgba(31,41,55,.12)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.12),transparent 25%),radial-gradient(circle at top right,rgba(194,65,12,.1),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.8vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .mini-grid,.controls,.result-grid,.grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,41,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:24px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    .controls{grid-template-columns:repeat(4,minmax(0,1fr))}
+    label{display:block;margin-bottom:6px;font-size:14px;font-weight:700}
+    select,input{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px}
+    .btn-row{display:flex;flex-wrap:wrap;gap:10px}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--ink);padding:10px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),#115e59);color:#fff;border-color:transparent}
+    .result-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,41,55,.08);border-radius:18px;padding:16px}
+    .list{display:grid;gap:12px;margin-top:12px}
+    .list-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.74);border:1px solid rgba(31,41,55,.08)}
+    .list-item strong{display:block;margin-bottom:6px;font-size:15px}
+    @media (max-width:980px){.hero,.controls,.result-grid,.mini-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：t 检验</div>
+    </div>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">T-Test Lab</p>
+        <h1>t 检验实验页</h1>
+        <p class="lead">这页只用公开安全的摘要统计量来演示单样本、独立样本和配对样本 t 检验，重点帮助学生理解“比较对象是谁、差值怎么构造、P 值和置信区间怎么对应”。</p>
+        <div class="hero-points">
+          <div>先区分单样本、独立样本和配对样本，远比直接套公式更重要。</div>
+          <div>t 检验回答的是均值差是否足够偏离零假设，而不是差异“有没有临床意义”。</div>
+          <div>配对设计的分析对象是差值本身，不是两列原始均值各算一次。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">先选设计</div><div class="value">1 样本 / 2 独立 / 配对</div><div class="note">设计决定公式。</div></div>
+        <div class="card mini-card"><div class="label">关键输出</div><div class="value">t, df, P, CI</div><div class="note">四个结果应一起解释。</div></div>
+        <div class="card mini-card"><div class="label">效应量</div><div class="value">d 或均值差</div><div class="note">不要只写显著性。</div></div>
+        <div class="card mini-card"><div class="label">公开边界</div><div class="value">只放通用示例</div><div class="note">不公开内部题目和课堂案例。</div></div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="section-head">
+        <div><p class="eyebrow">Calculator</p><h2>t 检验选择与计算</h2></div>
+        <p>输入摘要统计量即可，不需要使用课程内部原始数据。</p>
+      </div>
+      <div class="controls">
+        <div>
+          <label for="testType">检验类型</label>
+          <select id="testType">
+            <option value="one">单样本 t 检验</option>
+            <option value="independent">独立样本 t 检验（Welch）</option>
+            <option value="paired">配对 t 检验</option>
+          </select>
+        </div>
+        <div>
+          <label for="alpha">显著性水平 α</label>
+          <input id="alpha" type="number" value="0.05" min="0.001" max="0.2" step="0.001" />
+        </div>
+        <div>
+          <label for="mu0">零假设差值/参考值</label>
+          <input id="mu0" type="number" value="0" step="0.1" />
+        </div>
+        <div>
+          <label for="exampleSelect">示例数据</label>
+          <select id="exampleSelect">
+            <option value="one">单样本示例</option>
+            <option value="independent">独立样本示例</option>
+            <option value="paired">配对样本示例</option>
+          </select>
+        </div>
+        <div>
+          <label for="n1">样本 1 n</label>
+          <input id="n1" type="number" value="25" step="1" min="2" />
+        </div>
+        <div>
+          <label for="mean1">样本 1 mean</label>
+          <input id="mean1" type="number" value="128.4" step="0.1" />
+        </div>
+        <div>
+          <label for="sd1">样本 1 SD</label>
+          <input id="sd1" type="number" value="12.5" step="0.1" min="0.1" />
+        </div>
+        <div id="group2Wrap" style="display:none">
+          <label for="n2">样本 2 / 差值样本 n</label>
+          <input id="n2" type="number" value="23" step="1" min="2" />
+        </div>
+        <div id="mean2Wrap" style="display:none">
+          <label for="mean2">样本 2 mean / 差值均值</label>
+          <input id="mean2" type="number" value="120.1" step="0.1" />
+        </div>
+        <div id="sd2Wrap" style="display:none">
+          <label for="sd2">样本 2 SD / 差值 SD</label>
+          <input id="sd2" type="number" value="10.3" step="0.1" min="0.1" />
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn primary" id="btnCalc">计算</button>
+        <button class="btn" id="btnLoadExample">载入当前示例</button>
+      </div>
+      <div class="result-grid">
+        <div class="result"><div class="label">检验统计量</div><div class="value" id="tValue">—</div><div class="note">t = 估计差值 / 标准误</div></div>
+        <div class="result"><div class="label">自由度 df</div><div class="value" id="dfValue">—</div><div class="note">Welch 情形下 df 不是简单的 n1+n2-2。</div></div>
+        <div class="result"><div class="label">双侧 P 值</div><div class="value" id="pValue">—</div><div class="note">用于判断数据与零假设是否足够不一致。</div></div>
+        <div class="result"><div class="label">95% 置信区间</div><div class="value" id="ciValue">—</div><div class="note">区间若不跨 0，通常与双侧显著性结论一致。</div></div>
+        <div class="result"><div class="label">估计差值</div><div class="value" id="diffValue">—</div><div class="note">更适合作为“差异有多大”的直观表达。</div></div>
+        <div class="result"><div class="label">效应量提示</div><div class="value" id="effectValue">—</div><div class="note">标准化效应量有助于跨量纲比较。</div></div>
+      </div>
+      <div class="list">
+        <div class="list-item"><strong>公开教学提醒</strong><p id="interpretation">先计算一个结果，再把它翻译成一句完整的话：在给定 α 水平下，是否拒绝零假设？差值方向是什么？区间是否跨过零？</p></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function logGamma(z){const p=[0.99999999999980993,676.5203681218851,-1259.1392167224028,771.3234287776531,-176.6150291621406,12.507343278686905,-0.13857109526572012,9.984369578019572e-6,1.5056327351493116e-7];if(z<0.5){return Math.log(Math.PI)-Math.log(Math.sin(Math.PI*z))-logGamma(1-z);}z-=1;let x=p[0];for(let i=1;i<p.length;i++)x+=p[i]/(z+i);const t=z+7.5;return 0.5*Math.log(2*Math.PI)+(z+0.5)*Math.log(t)-t+Math.log(x);}
+    function betacf(a,b,x){const MAXIT=100,EPS=3e-7,FPMIN=1e-30;let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<FPMIN)d=FPMIN;d=1/d;let h=d;for(let m=1;m<=MAXIT;m++){let m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<FPMIN)d=FPMIN;c=1+aa/c;if(Math.abs(c)<FPMIN)c=FPMIN;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<EPS)break;}return h;}
+    function betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;const bt=Math.exp(logGamma(a+b)-logGamma(a)-logGamma(b)+a*Math.log(x)+b*Math.log(1-x));if(x<(a+1)/(a+b+2))return bt*betacf(a,b,x)/a;return 1-bt*betacf(b,a,1-x)/b;}
+    function tCDF(t, df){const x=df/(df+t*t);const ib=betai(df/2,0.5,x);return t>=0?1-0.5*ib:0.5*ib;}
+    function pTwoSidedFromT(t, df){const cdf=tCDF(t, df);return 2*Math.min(cdf,1-cdf);}
+    function quantileNormal(p){const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239],b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572],c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783],d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416];const plow=0.02425,phigh=1-plow;let q,r;if(p<plow){q=Math.sqrt(-2*Math.log(p));return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}if(p>phigh){q=Math.sqrt(-2*Math.log(1-p));return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}q=p-0.5;r=q*q;return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);}
+    function tCritical(alpha, df){const z=quantileNormal(1-alpha/2);if(df>200)return z;if(df>2)return z*Math.sqrt(df/(df-2));return 12;}
+
+    const examples = {
+      one: { testType: "one", alpha: 0.05, mu0: 120, n1: 25, mean1: 128.4, sd1: 12.5 },
+      independent: { testType: "independent", alpha: 0.05, mu0: 0, n1: 25, mean1: 128.4, sd1: 12.5, n2: 23, mean2: 120.1, sd2: 10.3 },
+      paired: { testType: "paired", alpha: 0.05, mu0: 0, n1: 18, mean1: 0, sd1: 0, n2: 18, mean2: 6.2, sd2: 8.4 }
+    };
+
+    function syncVisibility() {
+      const type = document.getElementById("testType").value;
+      const visible = type !== "one";
+      document.getElementById("group2Wrap").style.display = visible ? "" : "none";
+      document.getElementById("mean2Wrap").style.display = visible ? "" : "none";
+      document.getElementById("sd2Wrap").style.display = visible ? "" : "none";
+      document.querySelector("label[for='mean2']").textContent = type === "paired" ? "差值均值" : "样本 2 mean";
+      document.querySelector("label[for='sd2']").textContent = type === "paired" ? "差值 SD" : "样本 2 SD";
+      document.querySelector("label[for='n2']").textContent = type === "paired" ? "差值样本 n" : "样本 2 n";
+    }
+
+    function fmt(x, d=3){return Number.isFinite(x)?x.toFixed(d):"—";}
+    function loadExample() {
+      const preset = examples[document.getElementById("exampleSelect").value];
+      Object.keys(preset).forEach((key) => { const el = document.getElementById(key); if (el) el.value = preset[key]; });
+      syncVisibility();
+      calculate();
+    }
+
+    function calculate() {
+      const type = document.getElementById("testType").value;
+      const alpha = Number(document.getElementById("alpha").value) || 0.05;
+      const mu0 = Number(document.getElementById("mu0").value) || 0;
+      const n1 = Number(document.getElementById("n1").value) || 0;
+      const mean1 = Number(document.getElementById("mean1").value) || 0;
+      const sd1 = Number(document.getElementById("sd1").value) || 0;
+      const n2 = Number(document.getElementById("n2").value) || 0;
+      const mean2 = Number(document.getElementById("mean2").value) || 0;
+      const sd2 = Number(document.getElementById("sd2").value) || 0;
+
+      let diff, se, t, df, ciLow, ciHigh, effect, interpretation;
+      if (type === "one") {
+        diff = mean1 - mu0;
+        se = sd1 / Math.sqrt(n1);
+        t = diff / se;
+        df = n1 - 1;
+        const tCrit = tCritical(alpha, df);
+        ciLow = diff - tCrit * se;
+        ciHigh = diff + tCrit * se;
+        effect = sd1 > 0 ? diff / sd1 : NaN;
+        interpretation = "单样本 t 检验适合把样本均值与某参考值比较。";
+      } else if (type === "independent") {
+        diff = mean1 - mean2 - mu0;
+        const v1 = (sd1 * sd1) / n1;
+        const v2 = (sd2 * sd2) / n2;
+        se = Math.sqrt(v1 + v2);
+        t = diff / se;
+        df = ((v1 + v2) ** 2) / ((v1 * v1) / (n1 - 1) + (v2 * v2) / (n2 - 1));
+        const tCrit = tCritical(alpha, df);
+        ciLow = diff - tCrit * se;
+        ciHigh = diff + tCrit * se;
+        const pooled = Math.sqrt(((n1 - 1) * sd1 * sd1 + (n2 - 1) * sd2 * sd2) / (n1 + n2 - 2));
+        effect = pooled > 0 ? (mean1 - mean2) / pooled : NaN;
+        interpretation = "独立样本情形下，Welch 版本更适合应对方差不齐。";
+      } else {
+        diff = mean2 - mu0;
+        se = sd2 / Math.sqrt(n2);
+        t = diff / se;
+        df = n2 - 1;
+        const tCrit = tCritical(alpha, df);
+        ciLow = diff - tCrit * se;
+        ciHigh = diff + tCrit * se;
+        effect = sd2 > 0 ? diff / sd2 : NaN;
+        interpretation = "配对 t 检验分析的是差值均值是否偏离 0。";
+      }
+      const p = pTwoSidedFromT(t, df);
+      document.getElementById("tValue").textContent = fmt(t, 3);
+      document.getElementById("dfValue").textContent = fmt(df, 2);
+      document.getElementById("pValue").textContent = p < 0.0001 ? "< 0.0001" : fmt(p, 4);
+      document.getElementById("ciValue").textContent = `[${fmt(ciLow, 2)}, ${fmt(ciHigh, 2)}]`;
+      document.getElementById("diffValue").textContent = fmt(diff, 3);
+      document.getElementById("effectValue").textContent = Number.isFinite(effect) ? `d ≈ ${fmt(effect, 3)}` : "—";
+      document.getElementById("interpretation").textContent = `${interpretation} 在当前设定下，双侧 P 值为 ${p < 0.0001 ? "< 0.0001" : fmt(p, 4)}，差值区间为 [${fmt(ciLow, 2)}, ${fmt(ciHigh, 2)}]。教学中应把显著性、方向和区间一起解释。`;
+    }
+
+    document.getElementById("testType").addEventListener("change", syncVisibility);
+    document.getElementById("btnLoadExample").addEventListener("click", loadExample);
+    document.getElementById("btnCalc").addEventListener("click", calculate);
+    syncVisibility();
+    loadExample();
+  </script>
+</body>
+</html>

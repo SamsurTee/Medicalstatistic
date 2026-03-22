@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>相关分析实验页 | Correlation Analysis Lab</title>
+  <meta
+    name="description"
+    content="公开安全的相关分析教学页面，支持散点图、Pearson r、Spearman ρ 和离群点影响演示。"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#fff7ee;--bg2:#f7eee0;--panel:rgba(255,255,255,.88);--card:#fff;--ink:#1f2937;--muted:#64748b;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,41,55,.12);--shadow:0 20px 44px rgba(31,41,55,.12)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.12),transparent 25%),radial-gradient(circle at top right,rgba(194,65,12,.1),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.8vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .mini-grid,.result-grid,.grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,41,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:24px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .layout{display:grid;grid-template-columns:1.18fr .92fr;gap:20px;align-items:start}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    textarea{width:100%;min-height:180px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px;resize:vertical}
+    .btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--ink);padding:10px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),#115e59);color:#fff;border-color:transparent}
+    canvas{width:100%;height:440px;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.96));border:1px solid rgba(31,41,55,.08);border-radius:22px}
+    .result-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,41,55,.08);border-radius:18px;padding:16px}
+    .list{display:grid;gap:12px;margin-top:12px}
+    .list-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.74);border:1px solid rgba(31,41,55,.08)}
+    .list-item strong{display:block;margin-bottom:6px;font-size:15px}
+    @media (max-width:980px){.hero,.layout,.mini-grid,.result-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：相关分析</div>
+    </div>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Correlation Analysis Lab</p>
+        <h1>相关分析实验页</h1>
+        <p class="lead">这页用公开安全的自定义数据演示相关分析最关键的三件事：散点图、Pearson r / Spearman ρ，以及离群点如何改变你对“关系强弱”的判断。</p>
+        <div class="hero-points">
+          <div>相关分析先看散点图，再看系数；系数永远不应脱离图形单独解释。</div>
+          <div>Pearson 更适合线性连续关系，Spearman 更适合秩次或单调关系。</div>
+          <div>即使相关显著，也不能直接写成因果结论。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">第一步</div><div class="value">看散点图</div><div class="note">先看趋势、离群点和非线性。</div></div>
+        <div class="card mini-card"><div class="label">第二步</div><div class="value">看 r / ρ</div><div class="note">再用系数概括关系方向与强度。</div></div>
+        <div class="card mini-card"><div class="label">最常见误区</div><div class="value">相关 = 因果</div><div class="note">这在医学研究中尤其危险。</div></div>
+        <div class="card mini-card"><div class="label">教学亮点</div><div class="value">离群点影响</div><div class="note">加一个离群点，学生就能立刻看到系数变化。</div></div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Scatter</p><h2>散点图与拟合线</h2></div>
+          <p>散点图是相关分析的起点，系数只是在图形基础上的压缩表达。</p>
+        </div>
+        <canvas id="scatterChart"></canvas>
+        <div class="result-grid">
+          <div class="result"><div class="label">Pearson r</div><div class="value" id="pearsonValue">—</div><div class="note">更适合线性关系。</div></div>
+          <div class="result"><div class="label">Spearman ρ</div><div class="value" id="spearmanValue">—</div><div class="note">更稳健地反映单调关系。</div></div>
+          <div class="result"><div class="label">拟合线</div><div class="value" id="lineValue">—</div><div class="note">帮助说明趋势方向，但不等于因果模型。</div></div>
+          <div class="result"><div class="label">样本量</div><div class="value" id="nValue">—</div><div class="note">样本量影响相关估计稳定性。</div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Data</p><h2>输入成对数据</h2></div>
+          <p>每行一个点，格式为 <code>x,y</code>。使用公开安全的通用数值即可。</p>
+        </div>
+        <textarea id="dataInput"></textarea>
+        <div class="btn-row">
+          <button class="btn primary" id="btnAnalyze">更新分析</button>
+          <button class="btn" data-example="linear">示例：线性正相关</button>
+          <button class="btn" data-example="outlier">示例：离群点干扰</button>
+          <button class="btn" data-example="monotone">示例：单调但非线性</button>
+        </div>
+        <div class="list">
+          <div class="list-item"><strong>课堂提醒</strong><p id="interpretation">先看散点图，再解释相关系数。如果图形明显弯曲，Pearson 可能会低估真实的单调关系。</p></div>
+          <div class="list-item"><strong>公开边界</strong><p>这页只演示方法逻辑，不公开课程内部病例数据、代码本或教学案例文件。</p></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    function rank(values) {
+      const sorted = values.map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v);
+      const ranks = Array(values.length);
+      let index = 0;
+      while (index < sorted.length) {
+        let end = index;
+        while (end + 1 < sorted.length && sorted[end + 1].v === sorted[index].v) end += 1;
+        const avg = (index + end + 2) / 2;
+        for (let j = index; j <= end; j += 1) ranks[sorted[j].i] = avg;
+        index = end + 1;
+      }
+      return ranks;
+    }
+    function mean(arr) { return arr.reduce((s, x) => s + x, 0) / arr.length; }
+    function correlation(x, y) {
+      const mx = mean(x), my = mean(y);
+      const num = x.reduce((s, v, i) => s + (v - mx) * (y[i] - my), 0);
+      const denX = Math.sqrt(x.reduce((s, v) => s + (v - mx) ** 2, 0));
+      const denY = Math.sqrt(y.reduce((s, v) => s + (v - my) ** 2, 0));
+      return num / (denX * denY);
+    }
+    function regression(x, y) {
+      const mx = mean(x), my = mean(y);
+      const sxx = x.reduce((s, v) => s + (v - mx) ** 2, 0);
+      const sxy = x.reduce((s, v, i) => s + (v - mx) * (y[i] - my), 0);
+      const b = sxy / sxx;
+      const a = my - b * mx;
+      return { a, b };
+    }
+    function parsePairs(text) {
+      return text.split(/\n+/).map((line) => line.trim()).filter(Boolean).map((line) => {
+        const [x, y] = line.split(/[,\s]+/).map(Number);
+        return { x, y };
+      }).filter((point) => Number.isFinite(point.x) && Number.isFinite(point.y));
+    }
+    const examples = {
+      linear: "1,2\n2,4\n3,5\n4,7\n5,9\n6,10\n7,12",
+      outlier: "1,2\n2,4\n3,5\n4,7\n5,9\n6,10\n7,20",
+      monotone: "1,1\n2,2\n3,4\n4,7\n5,11\n6,16\n7,22"
+    };
+    let chart = new Chart(document.getElementById("scatterChart"), { type: "scatter", data: { datasets: [] }, options: { responsive: true, maintainAspectRatio: false } });
+
+    function analyze() {
+      const points = parsePairs(document.getElementById("dataInput").value);
+      if (points.length < 3) return;
+      const x = points.map((p) => p.x), y = points.map((p) => p.y);
+      const pearson = correlation(x, y);
+      const spearman = correlation(rank(x), rank(y));
+      const line = regression(x, y);
+      const minX = Math.min(...x), maxX = Math.max(...x);
+
+      chart.destroy();
+      chart = new Chart(document.getElementById("scatterChart"), {
+        type: "scatter",
+        data: {
+          datasets: [
+            { label: "观测点", data: points, backgroundColor: "rgba(15,118,110,.75)" },
+            { label: "拟合线", type: "line", data: [{ x: minX, y: line.a + line.b * minX }, { x: maxX, y: line.a + line.b * maxX }], borderColor: "rgba(194,65,12,.9)", pointRadius: 0 }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      });
+
+      document.getElementById("pearsonValue").textContent = pearson.toFixed(3);
+      document.getElementById("spearmanValue").textContent = spearman.toFixed(3);
+      document.getElementById("lineValue").textContent = `y = ${line.a.toFixed(2)} + ${line.b.toFixed(2)}x`;
+      document.getElementById("nValue").textContent = String(points.length);
+      document.getElementById("interpretation").textContent = `当前 Pearson r = ${pearson.toFixed(3)}，Spearman ρ = ${spearman.toFixed(3)}。如果两个系数差异较大，往往提示数据存在离群点、非线性或秩次关系强于线性关系。`;
+    }
+    document.getElementById("btnAnalyze").addEventListener("click", analyze);
+    document.querySelectorAll("[data-example]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.getElementById("dataInput").value = examples[button.getAttribute("data-example")];
+        analyze();
+      });
+    });
+    document.getElementById("dataInput").value = examples.linear;
+    analyze();
+  </script>
+</body>
+</html>

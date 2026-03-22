@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>研究设计导览 | Study Design Guide</title>
+  <meta
+    name="description"
+    content="公开安全的研究设计导览页，帮助学生区分横断面、病例对照、队列和随机对照试验等常见设计。"
+  />
+  <style>
+    :root{
+      --bg:#f7f1e6;--bg2:#ece3d4;--panel:rgba(255,252,247,.88);--card:rgba(255,255,255,.92);--ink:#1f2a37;--muted:#5f6b7a;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,42,55,.12);--shadow:0 18px 42px rgba(31,42,55,.12);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.16),transparent 24%),radial-gradient(circle at top right,rgba(194,65,12,.12),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.6vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .mini-grid,.grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,42,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:26px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    .controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+    label{display:block;margin-bottom:6px;font-size:14px;font-weight:700}
+    select{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px}
+    .result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,42,55,.08);border-radius:18px;padding:16px}
+    ul{margin:12px 0 0;padding-left:18px;color:var(--muted);line-height:1.68}
+    .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .tag-row span{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(15,118,110,.08);color:var(--brand);font-size:12px;font-weight:700}
+    .compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+    @media (max-width:980px){.hero,.controls,.result-grid,.mini-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：绪论与研究设计</div>
+    </div>
+
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Study Design Guide</p>
+        <h1>研究设计导览</h1>
+        <p class="lead">这页不放内部讲义，而是把公开安全的研究设计框架做成一个决策工具。目标是帮助学生先分清“研究问题是什么、暴露能不能分配、是否需要随访”，再去判断该用哪种设计。</p>
+        <div class="hero-points">
+          <div>研究设计不是统计方法的前置装饰，它决定了后续指标、偏倚来源和能否支持因果解释。</div>
+          <div>横断面、病例对照、队列和随机对照试验最容易混淆，最好放在同一张地图里对比。</div>
+          <div>公开网站上适合展示方法逻辑，不适合上传本地 PBL、课堂案例和阅读材料。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">先问什么</div><div class="value">研究目的</div><div class="note">是描述现况、比较暴露，还是评价干预效果？</div></div>
+        <div class="card mini-card"><div class="label">核心判断</div><div class="value">能否分配暴露</div><div class="note">能随机分配时，通常优先考虑试验性设计。</div></div>
+        <div class="card mini-card"><div class="label">常见指标</div><div class="value">率 / RR / OR</div><div class="note">设计不同，最自然的关联指标也不同。</div></div>
+        <div class="card mini-card"><div class="label">容易误区</div><div class="value">相关等于因果</div><div class="note">观察性设计更需要讨论偏倚和混杂。</div></div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Decision Helper</p>
+          <h2>设计选择器</h2>
+        </div>
+        <p>从研究问题和数据获取方式出发，先判断设计，再考虑统计指标。</p>
+      </div>
+      <div class="controls">
+        <div>
+          <label for="goal">主要目标</label>
+          <select id="goal">
+            <option value="describe">描述某人群现况或分布</option>
+            <option value="exposure">探索暴露与结局关联</option>
+            <option value="intervention">评价干预或治疗效果</option>
+            <option value="prognosis">观察预后或随访结局</option>
+            <option value="diagnostic">评价诊断/筛查工具</option>
+          </select>
+        </div>
+        <div>
+          <label for="assignable">暴露或处理能否由研究者分配？</label>
+          <select id="assignable">
+            <option value="no">不能</option>
+            <option value="yes">可以</option>
+          </select>
+        </div>
+        <div>
+          <label for="timeDirection">是否需要时间随访？</label>
+          <select id="timeDirection">
+            <option value="none">不需要或只看当前时点</option>
+            <option value="forward">需要向前随访</option>
+            <option value="backward">主要追溯既往暴露</option>
+          </select>
+        </div>
+        <div>
+          <label for="rare">结局是否罕见？</label>
+          <select id="rare">
+            <option value="no">不是特别罕见</option>
+            <option value="yes">较罕见</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="result-grid">
+        <div class="result">
+          <div class="label">推荐设计</div>
+          <div class="value" id="designValue">横断面研究</div>
+          <div class="note" id="designNote">适合描述某时点的人群结构、患病率或暴露分布。</div>
+        </div>
+        <div class="result">
+          <div class="label">常见指标</div>
+          <div class="value" id="measureValue">率 / 构成比</div>
+          <div class="note" id="measureNote">优先用能自然匹配该设计的问题表述方式的指标。</div>
+        </div>
+        <div class="result">
+          <div class="label">主要优势</div>
+          <div class="value" id="strengthValue">效率高</div>
+          <div class="note" id="strengthNote">适合快速得到群体概况或初步关联线索。</div>
+        </div>
+        <div class="result">
+          <div class="label">重点偏倚提醒</div>
+          <div class="value" id="biasValue">选择偏倚</div>
+          <div class="note" id="biasNote">设计一旦确定，就要同步考虑偏倚和混杂控制。</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Compare</p>
+          <h2>常见设计对照</h2>
+        </div>
+        <p>把最容易混淆的几种设计放在一起看，学生更容易形成结构性认识。</p>
+      </div>
+      <div class="compare-grid">
+        <article class="card">
+          <h3>横断面研究</h3>
+          <p>在某一时点同时观察暴露和结局，适合描述率、构成和患病情况，但通常不适合强因果解释。</p>
+          <div class="tag-row"><span>现况调查</span><span>患病率</span><span>快</span></div>
+        </article>
+        <article class="card">
+          <h3>病例对照研究</h3>
+          <p>先按结局分组，再回顾暴露。特别适合罕见结局，常用 OR 作为关联指标。</p>
+          <div class="tag-row"><span>罕见病</span><span>回顾暴露</span><span>OR</span></div>
+        </article>
+        <article class="card">
+          <h3>队列研究</h3>
+          <p>先按暴露分组，再追踪结局。适合估计发病率和 RR，但成本通常更高。</p>
+          <div class="tag-row"><span>随访</span><span>发病率</span><span>RR</span></div>
+        </article>
+        <article class="card">
+          <h3>随机对照试验</h3>
+          <p>由研究者分配干预，内部效度通常更强，但仍需要考虑依从性、失访和伦理问题。</p>
+          <div class="tag-row"><span>随机化</span><span>干预评价</span><span>因果推断</span></div>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const goal = document.getElementById("goal");
+    const assignable = document.getElementById("assignable");
+    const timeDirection = document.getElementById("timeDirection");
+    const rare = document.getElementById("rare");
+
+    function updateDesign() {
+      const g = goal.value;
+      const a = assignable.value;
+      const t = timeDirection.value;
+      const r = rare.value;
+
+      let result = {
+        design: "横断面研究",
+        designNote: "适合描述某时点的人群结构、患病率或暴露分布。",
+        measure: "率 / 构成比",
+        measureNote: "优先报告现况描述指标，而不是过早解释因果。",
+        strength: "实施快、成本相对低",
+        strengthNote: "适合教学中的现况调查和初步问题识别。",
+        bias: "选择偏倚 / 时序不清",
+        biasNote: "暴露与结局同时测量时，时序关系最难判断。"
+      };
+
+      if (g === "intervention" && a === "yes") {
+        result = {
+          design: "随机对照试验",
+          designNote: "适合评价治疗、预防或行为干预效果。",
+          measure: "风险差 / RR / HR",
+          measureNote: "根据结局类型，常配合 RR、风险差或生存指标解释效果。",
+          strength: "内部效度通常最高",
+          strengthNote: "随机化有助于平衡已知和未知混杂因素。",
+          bias: "失访偏倚 / 依从性问题",
+          biasNote: "即使随机化了，也不能忽视随访质量和实际执行问题。"
+        };
+      } else if (g === "exposure" && t === "backward" && r === "yes") {
+        result = {
+          design: "病例对照研究",
+          designNote: "特别适合罕见结局，先按病例与对照分组，再回顾暴露。",
+          measure: "OR",
+          measureNote: "病例对照研究最自然的关联指标通常是 OR。",
+          strength: "对罕见结局效率高",
+          strengthNote: "相比大规模队列，更适合快速探索风险因素。",
+          bias: "回忆偏倚 / 选择偏倚",
+          biasNote: "病例与对照暴露信息来源不同，最容易引入系统误差。"
+        };
+      } else if ((g === "exposure" || g === "prognosis") && t === "forward") {
+        result = {
+          design: "队列研究",
+          designNote: "按暴露或基线状态分组后向前随访，适合估计发病风险和预后。",
+          measure: "发病率 / RR / HR",
+          measureNote: "如果涉及时间结局，常进一步进入生存分析。",
+          strength: "可明确时间顺序",
+          strengthNote: "暴露在先、结局在后，更容易支持因果链条讨论。",
+          bias: "失访偏倚 / 混杂",
+          biasNote: "观察性队列仍需认真处理混杂因素和失访问题。"
+        };
+      } else if (g === "diagnostic") {
+        result = {
+          design: "诊断试验研究",
+          designNote: "用于评价某筛查或诊断工具与金标准的一致性。",
+          measure: "敏感度 / 特异度 / ROC",
+          measureNote: "重点不在 RR 或 OR，而在诊断效能指标。",
+          strength: "能直接对应临床筛查场景",
+          strengthNote: "适合教学中引出筛查阈值和假阳性、假阴性概念。",
+          bias: "验证偏倚 / 谱偏倚",
+          biasNote: "样本来源和金标准执行方式会显著影响结果。"
+        };
+      }
+
+      document.getElementById("designValue").textContent = result.design;
+      document.getElementById("designNote").textContent = result.designNote;
+      document.getElementById("measureValue").textContent = result.measure;
+      document.getElementById("measureNote").textContent = result.measureNote;
+      document.getElementById("strengthValue").textContent = result.strength;
+      document.getElementById("strengthNote").textContent = result.strengthNote;
+      document.getElementById("biasValue").textContent = result.bias;
+      document.getElementById("biasNote").textContent = result.biasNote;
+    }
+
+    [goal, assignable, timeDirection, rare].forEach((el) => el.addEventListener("change", updateDesign));
+    updateDesign();
+  </script>
+</body>
+</html>

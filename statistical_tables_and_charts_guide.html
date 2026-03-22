@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>统计表与统计图公开指南 | Tables and Charts Guide</title>
+  <meta
+    name="description"
+    content="公开安全的统计表与统计图教学页，帮助学生根据数据类型和展示目标选择合适的图表形式。"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#f7f1e6;--bg2:#ece3d4;--panel:rgba(255,252,247,.88);--card:rgba(255,255,255,.92);--ink:#1f2a37;--muted:#5f6b7a;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,42,55,.12);--shadow:0 18px 42px rgba(31,42,55,.12)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.16),transparent 24%),radial-gradient(circle at top right,rgba(194,65,12,.12),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.6vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .grid,.mini-grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-content:start}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,42,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:24px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .layout{display:grid;grid-template-columns:1.18fr .92fr;gap:20px;align-items:start}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    .controls{display:grid;gap:12px}
+    label{display:block;margin-bottom:6px;font-size:14px;font-weight:700}
+    select,input{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px}
+    canvas{width:100%;height:420px;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.96));border:1px solid rgba(31,42,55,.08);border-radius:22px}
+    .btn-row{display:flex;flex-wrap:wrap;gap:10px}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--ink);padding:10px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),#115e59);color:#fff;border-color:transparent}
+    .result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,42,55,.08);border-radius:18px;padding:16px}
+    .list{display:grid;gap:12px;margin-top:12px}
+    .list-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.74);border:1px solid rgba(31,42,55,.08)}
+    .list-item strong{display:block;margin-bottom:6px;font-size:15px}
+    .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .tag-row span{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(15,118,110,.08);color:var(--brand);font-size:12px;font-weight:700}
+    @media (max-width:980px){.hero,.layout,.mini-grid,.result-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：统计表与统计图</div>
+    </div>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Tables and Charts Guide</p>
+        <h1>统计表与统计图公开指南</h1>
+        <p class="lead">这页用于公开解释“什么信息适合放表里、什么信息更适合放图里、什么图最容易误导”。它不替代内部课件，而是把统计表达的选择逻辑做成一个可演示的决策工具。</p>
+        <div class="hero-points">
+          <div>选错图表，比算错一个均值更容易误导读者。</div>
+          <div>好的统计表达应该先匹配数据类型和展示目标，而不是先选一个看起来好看的图。</div>
+          <div>公开站点更适合提供通用规范和示意图，不直接公开课程作业或内部表格模板。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">先问什么</div><div class="value">想突出什么</div><div class="note">是比较构成、看趋势、看分布还是看相关？</div></div>
+        <div class="card mini-card"><div class="label">常见误区</div><div class="value">饼图滥用</div><div class="note">多类别或对比任务通常更适合条形图。</div></div>
+        <div class="card mini-card"><div class="label">表格作用</div><div class="value">精确呈现</div><div class="note">需要精确数值和多指标并列时，表格更好。</div></div>
+        <div class="card mini-card"><div class="label">图形作用</div><div class="value">快速感知</div><div class="note">图更适合直观看趋势、差异和结构。</div></div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Preview</p><h2>图表选择与预览</h2></div>
+          <p>输入一组简单数据，观察不同图形的表达效果，并理解它们各自最适合回答的问题。</p>
+        </div>
+        <canvas id="chart"></canvas>
+        <div class="result-grid">
+          <div class="result"><div class="label">推荐图表</div><div class="value" id="chartValue">条形图</div><div class="note" id="chartNote">适合比较各类别的频数或比例。</div></div>
+          <div class="result"><div class="label">推荐表达方式</div><div class="value" id="tableValue">图 + 表</div><div class="note" id="tableNote">图突出模式，表保留精确数值，通常最稳妥。</div></div>
+          <div class="result"><div class="label">当前数据目标</div><div class="value" id="goalValue">类别比较</div><div class="note" id="goalNote">目标不同，最合适的图也不同。</div></div>
+          <div class="result"><div class="label">避免误区</div><div class="value" id="riskValue">轴截断</div><div class="note" id="riskNote">条形图常见风险是随意截断纵轴造成差异被夸大。</div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Controls</p><h2>表达目标选择器</h2></div>
+          <p>这里不追求复杂作图，而是训练“目标驱动的图表选择”思维。</p>
+        </div>
+        <div class="controls">
+          <div>
+            <label for="goal">你最想表达什么？</label>
+            <select id="goal">
+              <option value="compare">比较类别大小</option>
+              <option value="trend">展示时间趋势</option>
+              <option value="distribution">展示连续变量分布</option>
+              <option value="share">展示构成占比</option>
+              <option value="relation">展示两个连续变量关系</option>
+            </select>
+          </div>
+          <div>
+            <label for="dataInput">数据输入</label>
+            <input id="dataInput" value="A:42,B:35,C:23" />
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="btnRender">更新预览</button>
+            <button class="btn" data-example="compare">示例：类别比较</button>
+            <button class="btn" data-example="trend">示例：时间趋势</button>
+            <button class="btn" data-example="share">示例：构成占比</button>
+            <button class="btn" data-example="relation">示例：相关关系</button>
+          </div>
+          <div class="list">
+            <div class="list-item">
+              <strong>统计表什么时候更重要？</strong>
+              <p>当你需要精确值、多列指标、分层结果或完整的研究对象特征时，表格通常比图更合适。</p>
+            </div>
+            <div class="list-item">
+              <strong>图形什么时候更重要？</strong>
+              <p>当你希望读者一眼看到趋势、结构、离群点、分布形态或变量关系时，图形更有效。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <section class="panel">
+      <div class="section-head">
+        <div><p class="eyebrow">Common Mistakes</p><h2>常见表达错误</h2></div>
+        <p>这些错误很常见，也最适合在公开网站上做规范化提醒。</p>
+      </div>
+      <div class="grid">
+        <div class="list-item"><strong>条形图纵轴随意截断</strong><p>会夸大类别之间的差异，尤其在教学和汇报场景中最容易误导。</p></div>
+        <div class="list-item"><strong>用饼图比较太多类别</strong><p>类别超过 4 至 5 个时，角度比较会变得困难，通常条形图更清楚。</p></div>
+        <div class="list-item"><strong>用折线图连接无序类别</strong><p>折线默认暗示连续或时间顺序，无序类别不应硬连成趋势线。</p></div>
+        <div class="list-item"><strong>只放图不给数值来源</strong><p>教学中建议“图 + 简表”并用，图负责直觉，表负责精确。</p></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const ctx = document.getElementById("chart");
+    let chart = new Chart(ctx, { type: "bar", data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false } });
+
+    const presets = {
+      compare: { goal: "compare", data: "A:42,B:35,C:23" },
+      trend: { goal: "trend", data: "1月:12,2月:18,3月:24,4月:28,5月:32" },
+      distribution: { goal: "distribution", data: "55,60,62,63,63,64,66,68,70,72,75,79" },
+      share: { goal: "share", data: "阳性:42,阴性:58" },
+      relation: { goal: "relation", data: "1:2,2:4,3:5,4:8,5:10,6:11" }
+    };
+
+    function parsePairs(text) {
+      return text.split(",").map((item) => item.trim()).filter(Boolean).map((item) => {
+        const [k, v] = item.split(":");
+        return { label: (k || "").trim(), value: Number(v) };
+      }).filter((item) => item.label && Number.isFinite(item.value));
+    }
+
+    function parseNumbers(text) {
+      return text.split(/[,\s]+/).map((item) => Number(item.trim())).filter((value) => Number.isFinite(value));
+    }
+
+    function updateNarrative(goal) {
+      const map = {
+        compare: ["条形图", "图 + 表", "类别比较", "轴截断", "适合比较各类别的频数或比例。", "如果需要保留精确值，建议同时附表。", "条形图最适合回答“哪个类别更多”。", "条形图随意截断纵轴会夸大差异。"],
+        trend: ["折线图", "图为主", "时间变化", "时间点过密", "适合展示时间顺序中的变化趋势。", "如需查看每个时点的精确值，可附一个简表。", "折线图最适合回答“随时间怎样变化”。", "如果时间点过多而标注过密，趋势会难以识别。"],
+        distribution: ["直方图 / 箱线图", "图 + 统计量", "分布形态", "把分布画成折线", "连续变量更适合看分布形态、偏态和离群点。", "建议同时给出均值、中位数和 IQR。", "核心问题是数据集中在哪、离散多大、是否偏态。", "不要把无序分组误画成趋势。"],
+        share: ["条形图优先，饼图可辅助", "图 + 表", "构成占比", "类别过多", "构成占比可以用饼图，但类别太多时条形图更清楚。", "如果需要精确占比，建议附百分比表。", "关键问题是内部构成而不是顺序变化。", "类别多时饼图会失去可读性。"],
+        relation: ["散点图", "图为主", "变量关系", "把相关说成因果", "两个连续变量关系最适合散点图。", "可补一条拟合线和相关系数表。", "最适合回答“是否存在正负相关趋势”。", "散点图只能展示关系，不直接证明因果。"]
+      };
+      const [chartValue, tableValue, goalValue, riskValue, chartNote, tableNote, goalNote, riskNote] = map[goal];
+      document.getElementById("chartValue").textContent = chartValue;
+      document.getElementById("tableValue").textContent = tableValue;
+      document.getElementById("goalValue").textContent = goalValue;
+      document.getElementById("riskValue").textContent = riskValue;
+      document.getElementById("chartNote").textContent = chartNote;
+      document.getElementById("tableNote").textContent = tableNote;
+      document.getElementById("goalNote").textContent = goalNote;
+      document.getElementById("riskNote").textContent = riskNote;
+    }
+
+    function render() {
+      const goal = document.getElementById("goal").value;
+      const dataInput = document.getElementById("dataInput").value.trim();
+      updateNarrative(goal);
+
+      if (goal === "distribution") {
+        const numbers = parseNumbers(dataInput);
+        const labels = numbers.map((_, i) => String(i + 1));
+        chart.destroy();
+        chart = new Chart(ctx, {
+          type: "bar",
+          data: { labels, datasets: [{ label: "样本值", data: numbers, backgroundColor: "rgba(15,118,110,.55)" }] },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        });
+        return;
+      }
+
+      const pairs = parsePairs(dataInput);
+      const labels = pairs.map((p) => p.label);
+      const values = pairs.map((p) => p.value);
+
+      if (goal === "relation") {
+        chart.destroy();
+        chart = new Chart(ctx, {
+          type: "scatter",
+          data: { datasets: [{ label: "散点", data: pairs.map((p) => ({ x: Number(p.label), y: p.value })), backgroundColor: "rgba(194,65,12,.75)" }] },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+        return;
+      }
+
+      const type = goal === "trend" ? "line" : (goal === "share" ? "pie" : "bar");
+      chart.destroy();
+      chart = new Chart(ctx, {
+        type,
+        data: {
+          labels,
+          datasets: [{ label: "数值", data: values, backgroundColor: ["rgba(15,118,110,.7)", "rgba(194,65,12,.65)", "rgba(59,130,246,.6)", "rgba(245,158,11,.65)", "rgba(99,102,241,.6)"], borderColor: "rgba(15,118,110,.9)", fill: false }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: goal === "share" } } }
+      });
+    }
+
+    document.getElementById("btnRender").addEventListener("click", render);
+    document.querySelectorAll("[data-example]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const preset = presets[button.getAttribute("data-example")];
+        document.getElementById("goal").value = preset.goal;
+        document.getElementById("dataInput").value = preset.data;
+        render();
+      });
+    });
+    render();
+  </script>
+</body>
+</html>

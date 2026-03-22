@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>多元线性回归实验页 | Multiple Linear Regression Lab</title>
+  <meta
+    name="description"
+    content="公开安全的多元线性回归教学页面，帮助学生理解控制变量、偏回归系数、调整 R² 和共线性。"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#fff7ee;--bg2:#f7eee0;--panel:rgba(255,255,255,.88);--card:#fff;--ink:#1f2937;--muted:#64748b;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,41,55,.12);--shadow:0 20px 44px rgba(31,41,55,.12)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.12),transparent 25%),radial-gradient(circle at top right,rgba(194,65,12,.1),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.8vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .mini-grid,.result-grid,.grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,41,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:24px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .layout{display:grid;grid-template-columns:1.18fr .92fr;gap:20px;align-items:start}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    textarea{width:100%;min-height:220px;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px;resize:vertical}
+    .btn-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--ink);padding:10px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),#115e59);color:#fff;border-color:transparent}
+    canvas{width:100%;height:430px;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.96));border:1px solid rgba(31,41,55,.08);border-radius:22px}
+    .result-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,41,55,.08);border-radius:18px;padding:16px}
+    .list{display:grid;gap:12px;margin-top:12px}
+    .list-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.74);border:1px solid rgba(31,41,55,.08)}
+    .list-item strong{display:block;margin-bottom:6px;font-size:15px}
+    .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .tag-row span{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(15,118,110,.08);color:var(--brand);font-size:12px;font-weight:700}
+    @media (max-width:980px){.hero,.layout,.mini-grid,.result-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：多元线性回归</div>
+    </div>
+
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Multiple Linear Regression Lab</p>
+        <h1>多元线性回归实验页</h1>
+        <p class="lead">这页把多元线性回归最容易混淆的三件事拆开讲清楚：为什么要“控制变量”、偏回归系数到底在说什么，以及自变量之间高度相关时为什么会让解释变得不稳定。</p>
+        <div class="hero-points">
+          <div>多元回归的核心不是“变量越多越好”，而是看在控制其他变量后，某个自变量还能提供多少独立信息。</div>
+          <div>偏回归系数描述的是“其余变量保持不变”时，目标变量的平均变化方向和幅度。</div>
+          <div>公开页面适合展示方法框架和合成数据，不适合直接上传患者原始资料或课程内部数据表。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">模型形式</div><div class="value">y = β0 + β1x1 + β2x2</div><div class="note">先用两个自变量看懂控制变量的逻辑。</div></div>
+        <div class="card mini-card"><div class="label">关键输出</div><div class="value">β, R², 调整 R²</div><div class="note">显著性之外，更要看解释力与方向。</div></div>
+        <div class="card mini-card"><div class="label">常见风险</div><div class="value">共线性</div><div class="note">x1 和 x2 太像，会让系数变得不稳定。</div></div>
+        <div class="card mini-card"><div class="label">课堂重点</div><div class="value">控制后再解释</div><div class="note">先说条件，再说系数含义。</div></div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Model Fit</p><h2>实际值与模型预测</h2></div>
+          <p>先看模型是否大体追上数据，再回到系数、R² 和残差的解释。</p>
+        </div>
+        <canvas id="fitChart"></canvas>
+        <div class="result-grid">
+          <div class="result"><div class="label">回归方程</div><div class="value" id="equationValue">—</div><div class="note">先看方向，再看数值大小。</div></div>
+          <div class="result"><div class="label">R² / 调整 R²</div><div class="value" id="r2Value">—</div><div class="note">调整 R² 更适合比较变量数不同的模型。</div></div>
+          <div class="result"><div class="label">残差标准误</div><div class="value" id="rseValue">—</div><div class="note">反映平均预测误差的大致量级。</div></div>
+          <div class="result"><div class="label">共线性提示</div><div class="value" id="vifValue">—</div><div class="note">这里只有两个自变量，因此用相关系数和 VIF 近似展示。</div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Data</p><h2>输入合成数据</h2></div>
+          <p>每行格式为 <code>y,x1,x2</code>。这里只放公开安全的通用数字。</p>
+        </div>
+        <textarea id="dataInput"></textarea>
+        <div class="btn-row">
+          <button class="btn primary" id="btnFit">拟合模型</button>
+          <button class="btn" data-example="balanced">示例：信息分工较清晰</button>
+          <button class="btn" data-example="confounded">示例：控制前后变化明显</button>
+          <button class="btn" data-example="collinear">示例：共线性偏高</button>
+        </div>
+        <div class="list">
+          <div class="list-item"><strong>数据格式</strong><p>第一列是结局变量 <code>y</code>，第二列和第三列是两个自变量 <code>x1</code>、<code>x2</code>。</p></div>
+          <div class="list-item"><strong>教学解读</strong><p id="interpretation">拟合后先读一句完整的话：在控制另一个变量后，x1 和 x2 各自与 y 的关系方向是什么？解释力度如何？是否存在共线性警告？</p></div>
+          <div class="list-item"><strong>公开边界</strong><p>这里的示例只服务于方法教学，不公开课程内部病例表、试题数据或真实研究资料。</p></div>
+        </div>
+      </section>
+    </main>
+
+    <section class="panel">
+      <div class="section-head">
+        <div><p class="eyebrow">Reading Guide</p><h2>怎么把结果讲给学生听</h2></div>
+        <p>多元回归最怕只报表不说话。下面这三步，适合直接拿来做课堂解释模板。</p>
+      </div>
+      <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(250px,1fr))">
+        <div class="list-item"><strong>先说条件</strong><p>任何一个回归系数都默认“控制了其余变量”。如果不先说这个条件，学生很容易把偏回归系数误读成单变量关系。</p><div class="tag-row"><span>控制变量</span><span>偏回归系数</span></div></div>
+        <div class="list-item"><strong>再说方向与幅度</strong><p>系数正负号告诉你方向，绝对值告诉你单位变化幅度，但前提是量纲和编码方式已经讲清楚。</p><div class="tag-row"><span>方向</span><span>单位变化</span></div></div>
+        <div class="list-item"><strong>最后检查稳定性</strong><p>如果自变量之间非常相似，回归系数会变得敏感。此时不能只看 P 值，更要提醒学生注意共线性。</p><div class="tag-row"><span>VIF</span><span>稳定性</span></div></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    function mean(arr) { return arr.reduce((sum, value) => sum + value, 0) / arr.length; }
+    function correlation(a, b) {
+      const ma = mean(a);
+      const mb = mean(b);
+      const num = a.reduce((sum, value, index) => sum + (value - ma) * (b[index] - mb), 0);
+      const da = Math.sqrt(a.reduce((sum, value) => sum + (value - ma) ** 2, 0));
+      const db = Math.sqrt(b.reduce((sum, value) => sum + (value - mb) ** 2, 0));
+      return num / (da * db);
+    }
+    function fmt(value, digits = 3) { return Number.isFinite(value) ? value.toFixed(digits) : "—"; }
+    function invert3(matrix) {
+      const [a, b, c] = matrix[0];
+      const [d, e, f] = matrix[1];
+      const [g, h, i] = matrix[2];
+      const A = e * i - f * h;
+      const B = -(d * i - f * g);
+      const C = d * h - e * g;
+      const D = -(b * i - c * h);
+      const E = a * i - c * g;
+      const F = -(a * h - b * g);
+      const G = b * f - c * e;
+      const H = -(a * f - c * d);
+      const I = a * e - b * d;
+      const det = a * A + b * B + c * C;
+      if (Math.abs(det) < 1e-10) return null;
+      return [
+        [A / det, D / det, G / det],
+        [B / det, E / det, H / det],
+        [C / det, F / det, I / det]
+      ];
+    }
+    function parseRows(text) {
+      return text
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => line.split(/[,\s]+/).map(Number))
+        .filter((row) => row.length >= 3 && row.every((value) => Number.isFinite(value)))
+        .map(([y, x1, x2]) => ({ y, x1, x2 }));
+    }
+
+    const examples = {
+      balanced: "82,5,20\n86,6,21\n89,7,22\n94,8,22\n97,9,24\n100,10,24\n103,11,25\n107,12,26\n111,13,27\n114,14,28\n118,15,29\n121,16,30",
+      confounded: "78,4,18\n82,5,19\n85,5,22\n87,6,23\n90,7,24\n95,8,25\n96,9,25\n100,10,27\n102,11,28\n107,12,29\n109,13,30\n114,14,32",
+      collinear: "80,4,9\n84,5,11\n88,6,13\n92,7,15\n95,8,17\n99,9,18\n103,10,20\n107,11,22\n110,12,24\n115,13,26\n118,14,28\n122,15,30"
+    };
+
+    let chart = new Chart(document.getElementById("fitChart"), {
+      type: "line",
+      data: { labels: [], datasets: [] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } }
+      }
+    });
+
+    function fitModel() {
+      const rows = parseRows(document.getElementById("dataInput").value);
+      if (rows.length < 6) {
+        document.getElementById("interpretation").textContent = "至少输入 6 行有效数据，格式为 y,x1,x2。";
+        return;
+      }
+
+      const x1 = rows.map((row) => row.x1);
+      const x2 = rows.map((row) => row.x2);
+      const y = rows.map((row) => row.y);
+      const n = rows.length;
+
+      const s1 = x1.reduce((sum, value) => sum + value, 0);
+      const s2 = x2.reduce((sum, value) => sum + value, 0);
+      const sy = y.reduce((sum, value) => sum + value, 0);
+      const s11 = x1.reduce((sum, value) => sum + value * value, 0);
+      const s22 = x2.reduce((sum, value) => sum + value * value, 0);
+      const s12 = x1.reduce((sum, value, index) => sum + value * x2[index], 0);
+      const s1y = x1.reduce((sum, value, index) => sum + value * y[index], 0);
+      const s2y = x2.reduce((sum, value, index) => sum + value * y[index], 0);
+
+      const xtx = [
+        [n, s1, s2],
+        [s1, s11, s12],
+        [s2, s12, s22]
+      ];
+      const xtxInv = invert3(xtx);
+      if (!xtxInv) {
+        document.getElementById("interpretation").textContent = "当前数据使 x1 和 x2 几乎完全重合，模型无法稳定求解。请换一组不完全重复的信息。";
+        return;
+      }
+
+      const xty = [sy, s1y, s2y];
+      const beta = xtxInv.map((row) => row.reduce((sum, value, index) => sum + value * xty[index], 0));
+      const predicted = rows.map((row) => beta[0] + beta[1] * row.x1 + beta[2] * row.x2);
+      const residuals = y.map((value, index) => value - predicted[index]);
+      const yMean = mean(y);
+      const sse = residuals.reduce((sum, value) => sum + value * value, 0);
+      const sst = y.reduce((sum, value) => sum + (value - yMean) ** 2, 0);
+      const r2 = 1 - sse / sst;
+      const adjR2 = 1 - (1 - r2) * ((n - 1) / (n - 3));
+      const rse = Math.sqrt(sse / (n - 3));
+      const r12 = correlation(x1, x2);
+      const vif = 1 / (1 - r12 * r12);
+
+      chart.destroy();
+      chart = new Chart(document.getElementById("fitChart"), {
+        type: "line",
+        data: {
+          labels: rows.map((_, index) => `观测 ${index + 1}`),
+          datasets: [
+            {
+              label: "实际值",
+              data: y,
+              borderColor: "rgba(15,118,110,.92)",
+              backgroundColor: "rgba(15,118,110,.18)",
+              tension: 0.18
+            },
+            {
+              label: "模型预测",
+              data: predicted,
+              borderColor: "rgba(194,65,12,.92)",
+              backgroundColor: "rgba(194,65,12,.18)",
+              tension: 0.18
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } }
+        }
+      });
+
+      const beta1Direction = beta[1] >= 0 ? "增加" : "减少";
+      const beta2Direction = beta[2] >= 0 ? "增加" : "减少";
+      const vifText = vif >= 10 ? "共线性很强" : vif >= 5 ? "共线性偏高" : vif >= 2.5 ? "存在一定相关" : "共线性较低";
+
+      document.getElementById("equationValue").textContent = `y = ${fmt(beta[0],2)} + ${fmt(beta[1],2)}x1 + ${fmt(beta[2],2)}x2`;
+      document.getElementById("r2Value").textContent = `${fmt(r2,3)} / ${fmt(adjR2,3)}`;
+      document.getElementById("rseValue").textContent = fmt(rse, 3);
+      document.getElementById("vifValue").textContent = `r=${fmt(r12,3)}, VIF≈${fmt(vif,2)}`;
+      document.getElementById("interpretation").textContent = `在当前数据里，控制 x2 后，x1 每增加 1 单位，y 平均${beta1Direction} ${fmt(Math.abs(beta[1]),2)}；控制 x1 后，x2 每增加 1 单位，y 平均${beta2Direction} ${fmt(Math.abs(beta[2]),2)}。模型 R² 为 ${fmt(r2,3)}，调整 R² 为 ${fmt(adjR2,3)}。x1 与 x2 的相关提示 ${vifText}，教学时要提醒学生：系数解释必须连同共线性一起看。`;
+    }
+
+    document.getElementById("btnFit").addEventListener("click", fitModel);
+    document.querySelectorAll("[data-example]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.getElementById("dataInput").value = examples[button.getAttribute("data-example")];
+        fitModel();
+      });
+    });
+    document.getElementById("dataInput").value = examples.balanced;
+    fitModel();
+  </script>
+</body>
+</html>

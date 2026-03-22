@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>医学参考值范围实验页 | Medical Reference Range Lab</title>
+  <meta
+    name="description"
+    content="使用正态近似和百分位数法解释医学参考值范围、中心区间和异常阈值。"
+  />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root{--bg:#fff7ee;--bg2:#f7eee0;--panel:rgba(255,255,255,.88);--card:#fff;--ink:#1f2937;--muted:#64748b;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,41,55,.12);--shadow:0 20px 44px rgba(31,41,55,.12)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.12),transparent 25%),radial-gradient(circle at top right,rgba(194,65,12,.1),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.8vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .mini-grid,.result-grid,.grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,41,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:24px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .layout{display:grid;grid-template-columns:1.18fr .92fr;gap:20px;align-items:start}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    textarea,select,input{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px}
+    textarea{min-height:160px;resize:vertical}
+    label{display:block;margin-bottom:6px;font-size:14px;font-weight:700}
+    .controls{display:grid;gap:12px}
+    .btn-row{display:flex;flex-wrap:wrap;gap:10px}
+    .btn{border:1px solid var(--line);background:rgba(255,255,255,.72);color:var(--ink);padding:10px 14px;border-radius:999px;cursor:pointer;font-size:13px;font-weight:700}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),#115e59);color:#fff;border-color:transparent}
+    canvas{width:100%;height:420px;background:linear-gradient(180deg,rgba(255,255,255,.72),rgba(255,255,255,.96));border:1px solid rgba(31,41,55,.08);border-radius:22px}
+    .result-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,41,55,.08);border-radius:18px;padding:16px}
+    .list{display:grid;gap:12px;margin-top:12px}
+    .list-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.74);border:1px solid rgba(31,41,55,.08)}
+    .list-item strong{display:block;margin-bottom:6px;font-size:15px}
+    @media (max-width:980px){.hero,.layout,.mini-grid,.result-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：正态分布与医学参考值范围</div>
+    </div>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Medical Reference Range Lab</p>
+        <h1>医学参考值范围实验页</h1>
+        <p class="lead">这页把“正态分布中心区间”和“医学参考值范围”接到一起，帮助学生理解为什么参考范围通常不是诊断阈值，也为什么同一个指标可以用正态近似法或百分位数法来构造区间。</p>
+        <div class="hero-points">
+          <div>95% 参考范围通常描述健康个体的分布位置，不等同于疾病诊断界值。</div>
+          <div>当数据近似正态时，可用均值 ± 1.96SD；偏态明显时，更适合用百分位数法。</div>
+          <div>公开页面只用合成示例，不直接放你的真实课程案例数据。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">核心方法</div><div class="value">正态近似 / 百分位数</div><div class="note">两种方法适用条件不同。</div></div>
+        <div class="card mini-card"><div class="label">先看什么</div><div class="value">分布形态</div><div class="note">偏态越明显，越要谨慎使用均值 ± kSD。</div></div>
+        <div class="card mini-card"><div class="label">容易误区</div><div class="value">参考范围 ≠ 诊断阈值</div><div class="note">参考范围服务于分布描述，不一定对应临床判定线。</div></div>
+        <div class="card mini-card"><div class="label">建议输出</div><div class="value">区间 + 方法说明</div><div class="note">应同时说明用的是哪种构造方法。</div></div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Distribution</p><h2>参考范围与样本分布</h2></div>
+          <p>直方图帮助学生先判断分布形态，再决定更适合的参考范围方法。</p>
+        </div>
+        <canvas id="histChart"></canvas>
+        <div class="result-grid">
+          <div class="result"><div class="label">样本量</div><div class="value" id="nValue">0</div><div class="note">样本量太小时，百分位数法会更不稳定。</div></div>
+          <div class="result"><div class="label">均值 / 标准差</div><div class="value" id="meanSdValue">—</div><div class="note">正态近似法依赖这两个量。</div></div>
+          <div class="result"><div class="label">正态近似参考范围</div><div class="value" id="normalRange">—</div><div class="note">适合近似正态时快速估计中心范围。</div></div>
+          <div class="result"><div class="label">百分位数参考范围</div><div class="value" id="percentileRange">—</div><div class="note">偏态或异常值明显时更值得优先查看。</div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="section-head">
+          <div><p class="eyebrow">Controls</p><h2>数据与方法</h2></div>
+          <p>使用合成数据做公开演示，避免把内部课程数据直接放上站点。</p>
+        </div>
+        <div class="controls">
+          <div>
+            <label for="dataInput">样本数据（逗号、空格或换行分隔）</label>
+            <textarea id="dataInput"></textarea>
+          </div>
+          <div>
+            <label for="coverage">参考范围覆盖比例</label>
+            <select id="coverage">
+              <option value="0.90">90%</option>
+              <option value="0.95" selected>95%</option>
+              <option value="0.99">99%</option>
+            </select>
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="btnAnalyze">更新分析</button>
+            <button class="btn" data-example="hb">示例：近似正态</button>
+            <button class="btn" data-example="skew">示例：偏态指标</button>
+          </div>
+          <div class="list">
+            <div class="list-item">
+              <strong>怎么选方法？</strong>
+              <p id="methodAdvice">默认先同时给出两种区间，再根据分布形态判断哪一种更值得解释。</p>
+            </div>
+            <div class="list-item">
+              <strong>教学提示</strong>
+              <p>先把“中央覆盖区间”讲成分布问题，再强调“临床判定阈值”可能来自完全不同的标准。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const histCtx = document.getElementById("histChart");
+    let histChart = new Chart(histCtx, { type: "bar", data: { labels: [], datasets: [] }, options: { responsive: true, maintainAspectRatio: false } });
+
+    function quantileNormal(p) {
+      const a=[-39.69683028665376,220.9460984245205,-275.9285104469687,138.357751867269,-30.66479806614716,2.506628277459239];
+      const b=[-54.47609879822406,161.5858368580409,-155.6989798598866,66.80131188771972,-13.28068155288572];
+      const c=[-0.007784894002430293,-0.3223964580411365,-2.400758277161838,-2.549732539343734,4.374664141464968,2.938163982698783];
+      const d=[0.007784695709041462,0.3224671290700398,2.445134137142996,3.754408661907416];
+      const plow=0.02425; const phigh=1-plow; let q,r;
+      if (p<plow) { q=Math.sqrt(-2*Math.log(p)); return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+      if (p>phigh) { q=Math.sqrt(-2*Math.log(1-p)); return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1); }
+      q=p-0.5; r=q*q; return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+    }
+    function parseNumbers(text) {
+      return text.split(/[,\s]+/).map((v) => Number(v.trim())).filter((v) => Number.isFinite(v));
+    }
+    function mean(arr) { return arr.reduce((s, x) => s + x, 0) / arr.length; }
+    function sd(arr) {
+      const m = mean(arr);
+      return Math.sqrt(arr.reduce((s, x) => s + (x - m) ** 2, 0) / Math.max(1, arr.length - 1));
+    }
+    function quantile(arr, q) {
+      const sorted = [...arr].sort((a,b)=>a-b);
+      const idx = (sorted.length - 1) * q;
+      const lo = Math.floor(idx), hi = Math.ceil(idx);
+      if (lo === hi) return sorted[lo];
+      const h = idx - lo;
+      return sorted[lo] * (1 - h) + sorted[hi] * h;
+    }
+    function histogram(values, bins = 8) {
+      const min = Math.min(...values), max = Math.max(...values);
+      const width = (max - min || 1) / bins;
+      const counts = Array.from({ length: bins }, () => 0);
+      values.forEach((value) => {
+        const index = Math.min(bins - 1, Math.floor((value - min) / width));
+        counts[index] += 1;
+      });
+      const labels = counts.map((_, i) => `${(min + i * width).toFixed(1)}-${(min + (i + 1) * width).toFixed(1)}`);
+      return { labels, counts };
+    }
+
+    const examples = {
+      hb: "13.6,14.1,15.0,14.4,13.8,14.9,15.2,13.7,14.3,14.8,15.1,13.9,14.6,14.2,14.7,13.5,14.0,15.3,14.5,13.8",
+      skew: "3.2,3.4,3.5,3.6,3.7,3.9,4.0,4.1,4.2,4.4,4.5,4.8,5.0,5.4,5.9,6.5,7.2,8.1,9.0,10.4"
+    };
+
+    function analyze() {
+      const values = parseNumbers(document.getElementById("dataInput").value);
+      if (values.length < 5) return;
+      const coverage = Number(document.getElementById("coverage").value);
+      const alpha = 1 - coverage;
+      const z = quantileNormal(1 - alpha / 2);
+      const m = mean(values);
+      const s = sd(values);
+      const normalLow = m - z * s;
+      const normalHigh = m + z * s;
+      const pctLow = quantile(values, alpha / 2);
+      const pctHigh = quantile(values, 1 - alpha / 2);
+
+      const hist = histogram(values, Math.min(10, Math.max(6, Math.round(Math.sqrt(values.length)))));
+      histChart.destroy();
+      histChart = new Chart(histCtx, {
+        type: "bar",
+        data: { labels: hist.labels, datasets: [{ label: "频数", data: hist.counts, backgroundColor: "rgba(15,118,110,.6)" }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+      });
+
+      document.getElementById("nValue").textContent = String(values.length);
+      document.getElementById("meanSdValue").textContent = `${m.toFixed(2)} / ${s.toFixed(2)}`;
+      document.getElementById("normalRange").textContent = `[${normalLow.toFixed(2)}, ${normalHigh.toFixed(2)}]`;
+      document.getElementById("percentileRange").textContent = `[${pctLow.toFixed(2)}, ${pctHigh.toFixed(2)}]`;
+
+      const skewHint = Math.abs((m - quantile(values, 0.5)) / (s || 1));
+      document.getElementById("methodAdvice").textContent =
+        skewHint < 0.25
+          ? "当前样本看起来近似对称，正态近似法和百分位数法都可展示，但正态近似更容易教学。"
+          : "当前样本存在明显偏态或长尾，建议优先解释百分位数法得到的参考范围，并提醒学生不要机械使用均值 ± kSD。";
+    }
+
+    document.getElementById("btnAnalyze").addEventListener("click", analyze);
+    document.querySelectorAll("[data-example]").forEach((button) => {
+      button.addEventListener("click", () => {
+        document.getElementById("dataInput").value = examples[button.getAttribute("data-example")];
+        analyze();
+      });
+    });
+    document.getElementById("dataInput").value = examples.hb;
+    analyze();
+  </script>
+</body>
+</html>

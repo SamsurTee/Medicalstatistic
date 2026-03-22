@@ -1,62 +1,139 @@
 # Medical Statistics Interactive Studio
 
-一个面向医学统计教学的静态互动实验站。仓库中的每个模块都是独立 HTML 页面，打开浏览器即可运行，适合课堂演示、学生练习和 GitHub Pages 部署。
+一个面向医学统计教学的静态互动实验站。仓库中的模块均为独立 HTML 页面，浏览器直接打开即可运行，也可以直接部署到 GitHub Pages。
 
 Live site: https://samsurtee.github.io/Medicalstatistic/
 
 ## 项目定位
 
-这个项目不是单纯的“网页合集”，而是一个可逐步组织课程内容的互动教学入口，重点解决三类问题：
+这个仓库现在不只是零散网页合集，而是一个公开安全的医学统计课程入口。它重点解决三类问题：
 
-1. 公式会背，但学生很难把参数变化和结果变化联系起来。
-2. 检验会算，但不知道该如何解释 P 值、效应量和应用场景。
-3. 模块分散，课堂上不容易串成“描述统计 → 分布与抽样 → 推断 → 回归”的完整路径。
+1. 统计概念听得懂，但参数变化和结果变化之间缺少直觉连接。
+2. 会套公式，但不知道该如何选择方法、解释 P 值、效应量和模型系数。
+3. 课程主题分散，课堂上不容易串成“研究设计 → 描述统计 → 推断 → 回归 → 生存分析”的完整路径。
 
-因此，仓库现在按“概念表达、统计逻辑、教学应用”三个维度来组织：
+因此，仓库按“概念表达、统计逻辑、教学应用、公开边界”四个维度组织：
 
-- 表达：每个核心模块尽量说明“这个工具解决什么问题”。
-- 逻辑：强调指标、方法选择和结论解释之间的关系。
-- 应用：加入更接近课堂和医学研究场景的说明与示例。
+- 表达：每个页面都尽量先说清楚“这个统计工具解决什么问题”。
+- 逻辑：强调变量类型、设计类型、方法选择和结果解释之间的关系。
+- 应用：尽量保留适合课堂演示和学生自练的交互环节。
+- 边界：只公开合成数据、通用案例和方法框架，不直接上传内部课程文件。
 
-## 仓库结构
+## 当前公开模块
 
-所有交互页都位于仓库根目录，便于 GitHub Pages 直接发布。
+### 课程导览
 
 | 文件 | 模块主题 | 主要用途 |
 |---|---|---|
 | `index.html` | 课程入口页 | 统一导航、模块筛选、学习路径说明 |
+| `course_coverage_map.html` | 课程覆盖地图 | 说明公开站点已覆盖内容和敏感内容边界 |
+
+### 绪论与研究设计
+
+| 文件 | 模块主题 | 主要用途 |
+|---|---|---|
+| `research_design_study_guide.html` | 研究设计导览 | 区分横断面、病例对照、队列、随机对照试验 |
+
+### 描述统计与统计表达
+
+| 文件 | 模块主题 | 主要用途 |
+|---|---|---|
 | `quantitative_descriptive_statistics_single_file_teaching_page.html` | 定量数据统计描述 | 讲均值、中位数、离散程度、异常值和分布形态 |
-| `qualitative_stats_interactive.html` | 定性数据统计描述 | 讲率、构成比、RR、OR、标准化率和图形表达 |
+| `qualitative_stats_interactive.html` | 定性数据统计描述 | 讲率、构成比、RR、OR、标准化率和常见图形 |
+| `statistical_tables_and_charts_guide.html` | 统计表与统计图 | 讲表格和图形该如何选、如何避免误导 |
+
+### 分布、抽样与参考范围
+
+| 文件 | 模块主题 | 主要用途 |
+|---|---|---|
 | `normal_distribution.html` | 正态分布与尾部概率 | 讲 Z 值、尾部面积、中央区间和临界值 |
-| `t_distribution_demo_fixed.html` | t 分布推导 | 讲总体、样本均值、自由度和 t 分布形成过程 |
+| `medical_reference_range_lab.html` | 医学参考值范围 | 讲参考范围、百分位数法和正态近似法 |
+| `t_distribution_demo_fixed.html` | t 分布推导 | 讲抽样分布、自由度和 t 分布形成过程 |
+
+### 参数估计与假设检验
+
+| 文件 | 模块主题 | 主要用途 |
+|---|---|---|
 | `动态置信区间演示.html` | 置信区间 | 讲样本量、标准误和区间宽度变化 |
-| `Parameter Estimator_Medical Statistics.html` | 参数估计 | 讲点估计、抽样波动和估计量表现 |
-| `chi_square_lab.html` | 卡方检验 | 讲列联表、期望频数、P 值、效应量和结果解释 |
-| `mle_logistic_interactive.html` | Logistic 回归 | 讲最大似然、二分类建模和预测概率 |
+| `Parameter Estimator_Medical Statistics.html` | 参数估计 | 讲点估计、抽样波动和估计量性质 |
+| `hypothesis_testing_roadmap.html` | 假设检验总览 | 讲研究问题、变量类型和检验方法选择 |
+| `t_test_lab.html` | t 检验 | 讲单样本、独立样本和配对样本 t 检验 |
+| `anova_oneway_lab.html` | 方差分析 | 讲组间变异、组内变异、F 值和 η² |
+| `chi_square_lab.html` | 卡方检验 | 讲列联表、期望频数、P 值和效应量 |
+| `nonparametric_tests_guide.html` | 非参数检验 | 讲秩和类方法、独立/配对、多组/两组场景选择 |
+
+### 相关与回归建模
+
+| 文件 | 模块主题 | 主要用途 |
+|---|---|---|
+| `correlation_analysis_lab.html` | 相关分析 | 讲散点图、Pearson r、Spearman ρ 和离群点影响 |
 | `OLS Linear Regression_Interactive Teaching Lab.html` | OLS 线性回归 | 讲拟合、残差和回归系数解释 |
+| `multiple_linear_regression_lab.html` | 多元线性回归 | 讲控制变量、偏回归系数、调整 R² 和共线性 |
+| `mle_logistic_interactive.html` | Logistic 回归 | 讲最大似然、二分类建模和预测概率 |
+
+### 时间结局分析
+
+| 文件 | 模块主题 | 主要用途 |
+|---|---|---|
+| `survival_analysis_explorer.html` | 生存分析 | 讲 Kaplan-Meier 曲线、删失、log-rank 和中位生存时间 |
+
+## 本轮补齐的公开模块
+
+这次已经补齐以下公开安全页面：
+
+- 研究设计导览
+- 医学参考值范围实验页
+- 统计表与统计图指南
+- 假设检验总览
+- t 检验实验页
+- 单因素 ANOVA 实验页
+- 相关分析实验页
+- 多元线性回归实验页
+- 非参数检验选择页
+- 生存分析基础实验页
+
+这些页面都只使用：
+
+- 合成数据
+- 通用医学研究场景
+- 方法框架和解释逻辑
+
+不会直接暴露本地课程文件内容。
 
 ## 推荐教学路径
 
 如果你希望把这些页面作为一门课来使用，建议按下面的顺序安排：
 
-1. 描述统计
+1. 研究问题与设计
+   - `research_design_study_guide.html`
+2. 描述统计与表达
    - `quantitative_descriptive_statistics_single_file_teaching_page.html`
    - `qualitative_stats_interactive.html`
-2. 分布与抽样
+   - `statistical_tables_and_charts_guide.html`
+3. 分布、抽样与参考范围
    - `normal_distribution.html`
+   - `medical_reference_range_lab.html`
    - `t_distribution_demo_fixed.html`
-3. 参数估计
+4. 参数估计与假设检验
    - `动态置信区间演示.html`
    - `Parameter Estimator_Medical Statistics.html`
-4. 推断与建模
+   - `hypothesis_testing_roadmap.html`
+   - `t_test_lab.html`
+   - `anova_oneway_lab.html`
    - `chi_square_lab.html`
-   - `mle_logistic_interactive.html`
+   - `nonparametric_tests_guide.html`
+5. 相关与回归
+   - `correlation_analysis_lab.html`
    - `OLS Linear Regression_Interactive Teaching Lab.html`
+   - `multiple_linear_regression_lab.html`
+   - `mle_logistic_interactive.html`
+6. 时间结局
+   - `survival_analysis_explorer.html`
 
-这样的顺序有两个好处：
+这样的路径有两个直接好处：
 
-- 学生先建立对数据形态和频率含义的直觉，再进入推断。
-- 进入检验和回归时，前面的图形和抽样概念已经打底，不会只剩公式记忆。
+- 学生会先建立研究设计和变量类型的框架，再进入具体计算。
+- 后续讲回归、生存分析时，前面的描述统计、抽样误差和检验逻辑已经打底。
 
 ## 本地运行
 
@@ -64,9 +141,9 @@ Live site: https://samsurtee.github.io/Medicalstatistic/
 
 项目中的大部分页面都可以直接双击 `.html` 文件在浏览器中运行。
 
-### 方式 2：使用本地静态服务器
+### 方式 2：本地静态服务器
 
-如果你希望测试链接、相对路径和 GitHub Pages 部署效果，可以在仓库目录运行：
+如果你希望测试链接、相对路径和 GitHub Pages 效果，可以在仓库目录运行：
 
 ```bash
 python3 -m http.server 4000
@@ -74,7 +151,7 @@ python3 -m http.server 4000
 
 然后访问 `http://localhost:4000/`。
 
-### 方式 3：使用 Jekyll
+### 方式 3：Jekyll
 
 仓库保留了 GitHub Pages/Jekyll 配置，适合与线上部署保持一致：
 
@@ -93,82 +170,41 @@ bundle exec jekyll serve --livereload
 - 首页入口：`index.html`
 - 站点地址：https://samsurtee.github.io/Medicalstatistic/
 
-## 扩展建议
-
-如果你要继续往里加新实验页，建议遵循下面的约定：
-
-1. 每个新模块保持“单文件即可运行”，避免引入复杂构建流程。
-2. 页面顶部写清楚它解释的统计问题，而不是只写工具名称。
-3. 页面中至少包含三层信息：
-   - 参数输入或数据输入
-   - 计算结果或图形结果
-   - 解释性文字或应用提示
-4. 新页面加入首页目录清单时，补充：
-   - 中文标题
-   - 英文标题
-   - 所属主题
-   - 难度层级
-   - 关键词和使用场景
-5. 如果模块涉及方法选择，尽量把“为什么选这个方法”展示出来，而不是只输出结论。
-
-## 适合继续改进的方向
-
-- 为更多页面补充统一的导航和返回入口。
-- 给回归类页面增加医学研究案例模板。
-- 为分类资料和连续变量模块增加“课堂练习题 + 标准解释”。
-- 把页面中重复使用的样式抽成共享资源文件。
-
-## 基于课程主题仍建议补充的公开信息
-
-在不公开本地课程材料的前提下，站点仍然适合继续补充这些主题：
-
-- 绪论与研究设计导览页
-- 医学参考值范围与百分位数解释页
-- 假设检验总览与方法选择页
-- t 检验选择器或比较页
-- 方差分析（ANOVA）互动页
-- 相关分析独立页面
-- 多元线性回归入门页
-- 非参数检验决策页
-- 生存分析基础页
-
-这些内容最好采用：
-
-- 合成数据或公开数据
-- 通用医学研究场景
-- 方法框架、概念图和选择流程
-
-而不是直接复制课堂文件。
-
-## 不宜公开上传的内容
+## 公开安全边界
 
 为了避免泄露课程敏感信息，GitHub Pages 上不建议直接放入以下内容：
 
 - 原始课件文件，如 `.key`、`.pptx`、完整讲义 PDF
 - 考试、Quiz、翻转课堂题卡、PBL 作业材料
-- 真实案例数据、代码本、学生作业或评分相关文件
+- 真实病例数据、代码本、学生作业或评分相关文件
+- 带课程内部说明的录屏、视频和案例资料
 - 版权受限阅读材料和课程配套 PDF
-- 带课程内部痕迹的录屏、视频和案例说明
 
 更安全的做法是：
 
 - 只公开整理后的主题说明
 - 使用抽象化案例和脱敏表达
-- 把“课程覆盖地图”和“扩展建议”做成独立页面
+- 用合成数据演示方法逻辑
+- 把课程覆盖范围和公开边界做成独立页面说明
+
+## 后续适合继续精修的方向
+
+在不公开敏感材料的前提下，后续更适合继续做这些改进：
+
+- 统一更多页面的组件、配色和导航体验
+- 给核心模块补充“课堂练习题 + 标准解释”
+- 增加统计术语索引和方法选择速查页
+- 把重复样式和脚本逐步抽成共享资源
 
 ## English Summary
 
-This repository hosts a browser-only set of interactive teaching labs for medical statistics. Each lab is a standalone HTML page that can be opened locally or deployed directly through GitHub Pages. The project is designed to improve:
+This repository is now a public-safe course portal for medical statistics, not just a collection of static pages. It covers:
 
-- clarity of explanation,
-- statistical reasoning,
-- classroom usability.
+1. study design,
+2. descriptive statistics,
+3. distributions and reference ranges,
+4. estimation and hypothesis testing,
+5. correlation and regression,
+6. survival analysis.
 
-The recommended flow is:
-
-1. descriptive statistics,
-2. distributions and sampling,
-3. estimation,
-4. inference and regression.
-
-If you add new labs, keep them standalone, explain the teaching purpose clearly, and make sure the page includes inputs, outputs, and interpretation.
+All pages are standalone HTML files designed for browser-only use and GitHub Pages deployment. Public pages use synthetic data, generic teaching scenarios, and method logic only. Internal course files, quizzes, slides, PDFs, videos, and real datasets should remain private.

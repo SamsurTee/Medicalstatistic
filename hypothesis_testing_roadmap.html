@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>假设检验总览与方法选择 | Hypothesis Testing Roadmap</title>
+  <meta
+    name="description"
+    content="根据数据类型、分组数量、配对关系和分布特征，选择合适的假设检验方法并理解其零假设与效应量。"
+  />
+  <style>
+    :root{--bg:#f7f1e6;--bg2:#ece3d4;--panel:rgba(255,252,247,.88);--card:rgba(255,255,255,.92);--ink:#1f2a37;--muted:#5f6b7a;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,42,55,.12);--shadow:0 18px 42px rgba(31,42,55,.12)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.16),transparent 24%),radial-gradient(circle at top right,rgba(194,65,12,.12),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.6vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .mini-grid,.controls,.result-grid,.grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,42,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:24px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    .controls{grid-template-columns:repeat(4,minmax(0,1fr))}
+    label{display:block;margin-bottom:6px;font-size:14px;font-weight:700}
+    select{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px}
+    .result-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,42,55,.08);border-radius:18px;padding:16px}
+    .list-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.74);border:1px solid rgba(31,42,55,.08)}
+    .list-item strong{display:block;margin-bottom:6px;font-size:15px}
+    .grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+    .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .tag-row span{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(15,118,110,.08);color:var(--brand);font-size:12px;font-weight:700}
+    @media (max-width:980px){.hero,.controls,.result-grid,.mini-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：参数估计与假设检验</div>
+    </div>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Hypothesis Testing Roadmap</p>
+        <h1>假设检验总览与方法选择</h1>
+        <p class="lead">这页的目标不是替代各个检验模块，而是先给学生一张方法路线图。只要先搞清楚结局变量类型、组数、是否配对以及分布条件，后面大多数检验选择都会变得清晰。</p>
+        <div class="hero-points">
+          <div>先选检验，再谈 P 值，比先报 P 值再解释通常更有教学价值。</div>
+          <div>零假设回答的是“有没有足够证据反对无差异/无关联”，效应量回答的是“差异有多大”。</div>
+          <div>公开网站最适合做方法选择和逻辑解释，不适合直接搬运内部作业和题库。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">第一步</div><div class="value">分清变量类型</div><div class="note">连续、分类、顺序或生存时间，决定方法起点。</div></div>
+        <div class="card mini-card"><div class="label">第二步</div><div class="value">看组数与配对</div><div class="note">两组和多组、独立和配对往往对应不同检验。</div></div>
+        <div class="card mini-card"><div class="label">第三步</div><div class="value">查条件</div><div class="note">正态性、方差齐性、期望频数和删失情况都要考虑。</div></div>
+        <div class="card mini-card"><div class="label">第四步</div><div class="value">报告完整</div><div class="note">报告检验、P 值、效应量和区间，而不是只写“有显著差异”。</div></div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="section-head">
+        <div><p class="eyebrow">Selector</p><h2>方法选择器</h2></div>
+        <p>从研究问题出发，一步步缩小候选检验范围。</p>
+      </div>
+      <div class="controls">
+        <div>
+          <label for="outcomeType">结局变量类型</label>
+          <select id="outcomeType">
+            <option value="continuous">连续变量</option>
+            <option value="categorical">分类变量</option>
+            <option value="ordinal">顺序/等级变量</option>
+            <option value="survival">生存时间</option>
+          </select>
+        </div>
+        <div>
+          <label for="groupCount">比较组数</label>
+          <select id="groupCount">
+            <option value="1">1 组</option>
+            <option value="2">2 组</option>
+            <option value="3plus">3 组及以上</option>
+          </select>
+        </div>
+        <div>
+          <label for="paired">是否配对/重复测量？</label>
+          <select id="paired">
+            <option value="no">否</option>
+            <option value="yes">是</option>
+          </select>
+        </div>
+        <div>
+          <label for="assumption">参数条件是否基本满足？</label>
+          <select id="assumption">
+            <option value="yes">基本满足</option>
+            <option value="no">不满足或不确定</option>
+          </select>
+        </div>
+      </div>
+      <div class="result-grid">
+        <div class="result"><div class="label">推荐方法</div><div class="value" id="testValue">单样本 t 检验</div><div class="note" id="testNote">适用于连续变量、单组、参数条件基本满足的情形。</div></div>
+        <div class="result"><div class="label">零假设</div><div class="value" id="nullValue">总体均值等于某参考值</div><div class="note" id="nullNote">先把零假设说清楚，学生才更容易理解 P 值在反驳什么。</div></div>
+        <div class="result"><div class="label">建议同时报告</div><div class="value" id="effectValue">均值差 + CI</div><div class="note" id="effectNote">不要只给显著性结果。</div></div>
+        <div class="result"><div class="label">重点条件</div><div class="value" id="assumptionValue">近似正态</div><div class="note" id="assumptionNote">参数检验的分布条件和设计条件要一起考虑。</div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div><p class="eyebrow">Core Ideas</p><h2>公开版教学提醒</h2></div>
+        <p>这些提醒适合直接挂在公开网站上，不涉及你的内部课堂资料。</p>
+      </div>
+      <div class="grid cols-3">
+        <div class="list-item"><strong>检验前先看数据</strong><p>先看分布、离群点、表格结构和样本量，再决定检验，不要只靠题目关键词机械匹配。</p><div class="tag-row"><span>描述统计先行</span></div></div>
+        <div class="list-item"><strong>零假设不是研究结论</strong><p>拒绝零假设不等于证明研究结论完全成立，只能说明数据与“无差异/无关联”不太一致。</p><div class="tag-row"><span>P 值解释</span></div></div>
+        <div class="list-item"><strong>效应量不能缺席</strong><p>样本很大时很小的差异也可能显著，因此应同时报告效应量和区间估计。</p><div class="tag-row"><span>效应量</span><span>CI</span></div></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const controls = ["outcomeType", "groupCount", "paired", "assumption"].map((id) => document.getElementById(id));
+    function updateRoadmap() {
+      const outcome = document.getElementById("outcomeType").value;
+      const groups = document.getElementById("groupCount").value;
+      const paired = document.getElementById("paired").value;
+      const assumption = document.getElementById("assumption").value;
+      let result = {
+        test: "单样本 t 检验",
+        testNote: "适用于连续变量、单组、参数条件基本满足的情形。",
+        nullText: "总体均值等于某参考值",
+        nullNote: "零假设应与研究问题中的“无差异”或“无效应”对应。",
+        effect: "均值差 + CI",
+        effectNote: "建议同时给出差值、标准误和置信区间。",
+        assumptionText: "近似正态",
+        assumptionNote: "样本量很小或分布偏离明显时，应考虑替代方法。"
+      };
+
+      if (outcome === "categorical" && groups === "2" && paired === "no") {
+        result = {
+          test: "χ² 检验或 Fisher 确切概率",
+          testNote: "适用于 2×2 或一般列联表，根据期望频数决定是否改用 Fisher。",
+          nullText: "行变量与列变量独立",
+          nullNote: "即不同组的结局构成没有系统差异。",
+          effect: "RR / OR / Cramér's V",
+          effectNote: "分类资料不应只报 P 值，建议同时报告关联强度。",
+          assumptionText: "期望频数充分",
+          assumptionNote: "期望频数过小时应改用更稳健的方法。"
+        };
+      } else if (outcome === "continuous" && groups === "2" && paired === "no" && assumption === "yes") {
+        result = {
+          test: "独立样本 t 检验（Welch 优先）",
+          testNote: "两组连续变量比较时，Welch 版本对方差不齐更稳健。",
+          nullText: "两组总体均值相等",
+          nullNote: "差异的方向和大小最好用均值差与 CI 一起展示。",
+          effect: "均值差 / Cohen's d",
+          effectNote: "均值差负责原始量纲，d 负责标准化强度。",
+          assumptionText: "组内近似正态",
+          assumptionNote: "若偏离明显，可转向非参数方法。"
+        };
+      } else if (outcome === "continuous" && groups === "2" && paired === "yes" && assumption === "yes") {
+        result = {
+          test: "配对 t 检验",
+          testNote: "关键是看配对差值是否近似正态，而不是原始值是否正态。",
+          nullText: "平均配对差值为 0",
+          nullNote: "配对设计的比较对象是“差值”本身。",
+          effect: "配对差值 + CI",
+          effectNote: "建议直接报告平均差及其区间估计。",
+          assumptionText: "配对差值近似正态",
+          assumptionNote: "如果差值分布不稳，可考虑 Wilcoxon 符号秩检验。"
+        };
+      } else if (outcome === "continuous" && groups === "3plus" && assumption === "yes") {
+        result = {
+          test: "方差分析（ANOVA）",
+          testNote: "适用于三组及以上均值比较，先判断总体差异，再考虑事后比较。",
+          nullText: "各组总体均值相等",
+          nullNote: "ANOVA 先回答“至少有一组不同”，不直接告诉哪两组不同。",
+          effect: "η² / ω² + 组均值",
+          effectNote: "建议把 F 值和效应量一起报告。",
+          assumptionText: "正态性 + 方差齐性",
+          assumptionNote: "若明显不满足，可考虑 Kruskal-Wallis。"
+        };
+      } else if (outcome === "ordinal" || assumption === "no") {
+        result = {
+          test: "非参数检验",
+          testNote: "顺序资料、偏态分布或参数条件明显不足时，优先考虑秩和类方法。",
+          nullText: "各组分布位置相同",
+          nullNote: "非参数方法通常检验的是分布位置或秩次差异。",
+          effect: "中位数 / 秩次差 / 效应量 r",
+          effectNote: "建议至少给出中位数和四分位数。",
+          assumptionText: "独立性 / 配对结构",
+          assumptionNote: "非参数也有设计前提，不是“完全无条件”。"
+        };
+      } else if (outcome === "survival") {
+        result = {
+          test: "log-rank 检验 / Cox 回归",
+          testNote: "生存时间资料要考虑删失，不能直接套普通均值比较。",
+          nullText: "各组生存曲线无差异",
+          nullNote: "如果需要调整协变量，进一步进入 Cox 模型。",
+          effect: "HR + 生存率",
+          effectNote: "建议同时展示 Kaplan-Meier 曲线。",
+          assumptionText: "删失机制 / 比例风险",
+          assumptionNote: "生存分析的关键条件与普通检验不同。"
+        };
+      }
+
+      document.getElementById("testValue").textContent = result.test;
+      document.getElementById("testNote").textContent = result.testNote;
+      document.getElementById("nullValue").textContent = result.nullText;
+      document.getElementById("nullNote").textContent = result.nullNote;
+      document.getElementById("effectValue").textContent = result.effect;
+      document.getElementById("effectNote").textContent = result.effectNote;
+      document.getElementById("assumptionValue").textContent = result.assumptionText;
+      document.getElementById("assumptionNote").textContent = result.assumptionNote;
+    }
+    controls.forEach((el) => el.addEventListener("change", updateRoadmap));
+    updateRoadmap();
+  </script>
+</body>
+</html>

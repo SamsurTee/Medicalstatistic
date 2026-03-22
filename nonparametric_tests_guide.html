@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>非参数检验选择与秩和演示 | Nonparametric Tests Guide</title>
+  <meta
+    name="description"
+    content="公开安全的非参数检验页面，帮助学生根据独立/配对、组数和变量类型选择合适的秩和类方法。"
+  />
+  <style>
+    :root{--bg:#f7f1e6;--bg2:#ece3d4;--panel:rgba(255,252,247,.88);--card:rgba(255,255,255,.92);--ink:#1f2a37;--muted:#5f6b7a;--brand:#0f766e;--accent:#c2410c;--line:rgba(31,42,55,.12);--shadow:0 18px 42px rgba(31,42,55,.12)}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"Avenir Next","SF Pro Display","PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:radial-gradient(circle at top left,rgba(15,118,110,.16),transparent 24%),radial-gradient(circle at top right,rgba(194,65,12,.12),transparent 22%),linear-gradient(180deg,var(--bg) 0%,var(--bg2) 100%);min-height:100vh}
+    .page{width:min(1180px,calc(100% - 28px));margin:0 auto;padding:24px 0 44px}
+    .topbar{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:18px;color:var(--muted);font-size:14px;flex-wrap:wrap}
+    .course-link{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.74);text-decoration:none;color:var(--ink);font-weight:700}
+    .hero,.panel,.card{background:var(--panel);backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.56);box-shadow:var(--shadow);border-radius:28px}
+    .hero,.panel{padding:24px;margin-bottom:20px}
+    .hero{display:grid;grid-template-columns:1.08fr .92fr;gap:18px}
+    .eyebrow{margin:0 0 10px;color:var(--brand);text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:800}
+    h1,h2,h3,p{margin:0}
+    h1{font-size:clamp(30px,4.6vw,50px);line-height:1.05;margin-bottom:14px}
+    .lead{color:var(--muted);font-size:17px;line-height:1.72;max-width:58ch}
+    .hero-points{display:grid;gap:10px;margin-top:18px;color:var(--muted);font-size:14px}
+    .hero-points div{display:flex;gap:10px;align-items:flex-start}
+    .hero-points div::before{content:"•";color:var(--accent);font-size:18px;line-height:1;margin-top:-1px}
+    .mini-grid,.controls,.result-grid,.grid{display:grid;gap:16px}
+    .mini-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .card{padding:18px;background:var(--card);border:1px solid rgba(31,42,55,.08)}
+    .mini-card .label,.result .label{color:var(--muted);font-size:13px;margin-bottom:6px}
+    .mini-card .value,.result .value{font-size:24px;font-weight:800}
+    .mini-card .note,.result .note,.card p{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.6}
+    .section-head{display:flex;justify-content:space-between;gap:14px;align-items:end;margin-bottom:14px}
+    .section-head h2{font-size:clamp(24px,3vw,34px)}
+    .section-head p{color:var(--muted);max-width:48ch;line-height:1.64}
+    .controls{grid-template-columns:repeat(4,minmax(0,1fr))}
+    label{display:block;margin-bottom:6px;font-size:14px;font-weight:700}
+    select{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.88);color:var(--ink);font-size:14px}
+    .result-grid{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:14px}
+    .result{background:var(--card);border:1px solid rgba(31,42,55,.08);border-radius:18px;padding:16px}
+    .list-item{padding:16px;border-radius:18px;background:rgba(255,255,255,.74);border:1px solid rgba(31,42,55,.08)}
+    .list-item strong{display:block;margin-bottom:6px;font-size:15px}
+    .grid.cols-3{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+    .tag-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .tag-row span{display:inline-flex;padding:6px 10px;border-radius:999px;background:rgba(15,118,110,.08);color:var(--brand);font-size:12px;font-weight:700}
+    @media (max-width:980px){.hero,.controls,.result-grid,.mini-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.page{width:min(100% - 18px,100%)}.hero,.panel,.card{border-radius:22px}.hero,.panel{padding:18px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <a class="course-link" href="index.html">← 返回课程导航</a>
+      <div>课程位置：非参数检验</div>
+    </div>
+    <header class="hero">
+      <div>
+        <p class="eyebrow">Nonparametric Tests Guide</p>
+        <h1>非参数检验选择与秩和演示</h1>
+        <p class="lead">当数据偏态明显、样本量很小、变量是等级资料，或者参数条件难以保证时，学生往往会问“那应该怎么办”。这页就是公开版的答案：先看设计，再选合适的秩和类方法。</p>
+        <div class="hero-points">
+          <div>非参数检验不是“低配版参数检验”，它有自己的问题场景和解释方式。</div>
+          <div>很多非参数方法比较的是分布位置或秩次，而不是均值本身。</div>
+          <div>即使使用非参数方法，也仍要先做描述统计，特别是中位数和四分位数。</div>
+        </div>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card"><div class="label">先看什么</div><div class="value">独立还是配对</div><div class="note">这是选 Mann-Whitney 还是 Wilcoxon 的关键分界。</div></div>
+        <div class="card mini-card"><div class="label">再看什么</div><div class="value">两组还是多组</div><div class="note">两组和多组对应的秩和方法不同。</div></div>
+        <div class="card mini-card"><div class="label">常见输出</div><div class="value">中位数 + IQR</div><div class="note">不要只报 P 值，至少配上位置性描述统计。</div></div>
+        <div class="card mini-card"><div class="label">适用场景</div><div class="value">偏态 / 等级资料</div><div class="note">尤其适合严重偏态、小样本和顺序型结局。</div></div>
+      </div>
+    </header>
+
+    <section class="panel">
+      <div class="section-head">
+        <div><p class="eyebrow">Selector</p><h2>非参数检验选择器</h2></div>
+        <p>这里重点训练的是“设计匹配”，而不是死记方法名字。</p>
+      </div>
+      <div class="controls">
+        <div>
+          <label for="groups">组数</label>
+          <select id="groups">
+            <option value="2">2 组</option>
+            <option value="3plus">3 组及以上</option>
+          </select>
+        </div>
+        <div>
+          <label for="paired">是否配对/重复测量？</label>
+          <select id="paired">
+            <option value="no">否</option>
+            <option value="yes">是</option>
+          </select>
+        </div>
+        <div>
+          <label for="scale">变量类型</label>
+          <select id="scale">
+            <option value="continuous">连续但偏态</option>
+            <option value="ordinal">顺序/等级资料</option>
+          </select>
+        </div>
+        <div>
+          <label for="aim">比较目标</label>
+          <select id="aim">
+            <option value="location">比较位置/分布</option>
+            <option value="correlation">比较秩相关</option>
+          </select>
+        </div>
+      </div>
+      <div class="result-grid">
+        <div class="result"><div class="label">推荐方法</div><div class="value" id="methodValue">Mann-Whitney U 检验</div><div class="note" id="methodNote">适用于两独立组的秩次比较。</div></div>
+        <div class="result"><div class="label">零假设</div><div class="value" id="nullValue">两组分布位置相同</div><div class="note" id="nullNote">非参数方法通常不是直接比较均值。</div></div>
+        <div class="result"><div class="label">建议描述统计</div><div class="value" id="describeValue">中位数 + IQR</div><div class="note" id="describeNote">位置和离散都要体现出来。</div></div>
+        <div class="result"><div class="label">公开教学提醒</div><div class="value" id="tipValue">先看秩次思维</div><div class="note" id="tipNote">先理解“排序后比较”，再记方法名称。</div></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div><p class="eyebrow">Core Methods</p><h2>常见非参数方法</h2></div>
+        <p>下面这些方法，足以覆盖大多数医学统计入门课程中的非参数比较场景。</p>
+      </div>
+      <div class="grid cols-3">
+        <div class="list-item"><strong>Mann-Whitney U</strong><p>用于两独立组的秩次比较，适合偏态连续资料或顺序资料。</p><div class="tag-row"><span>两独立组</span><span>秩和</span></div></div>
+        <div class="list-item"><strong>Wilcoxon 符号秩检验</strong><p>用于两配对样本或重复测量前后比较，关注差值秩次而不是均值。</p><div class="tag-row"><span>配对</span><span>前后比较</span></div></div>
+        <div class="list-item"><strong>Kruskal-Wallis</strong><p>用于三组及以上独立样本比较，是 ANOVA 的非参数替代思路。</p><div class="tag-row"><span>多组</span><span>独立样本</span></div></div>
+        <div class="list-item"><strong>Friedman 检验</strong><p>用于三次及以上配对/重复测量的秩次比较。</p><div class="tag-row"><span>重复测量</span><span>多时点</span></div></div>
+        <div class="list-item"><strong>Spearman 秩相关</strong><p>用于两个变量的单调关系分析，适合偏态或等级资料。</p><div class="tag-row"><span>相关</span><span>秩次</span></div></div>
+        <div class="list-item"><strong>中位数与四分位数</strong><p>非参数分析的结果展示最好围绕位置和离散来表达，而不是强行回到均值。</p><div class="tag-row"><span>中位数</span><span>IQR</span></div></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const elements = ["groups", "paired", "scale", "aim"].map((id) => document.getElementById(id));
+    function updateGuide() {
+      const groups = document.getElementById("groups").value;
+      const paired = document.getElementById("paired").value;
+      const scale = document.getElementById("scale").value;
+      const aim = document.getElementById("aim").value;
+
+      let result = {
+        method: "Mann-Whitney U 检验",
+        methodNote: "适用于两独立组的秩次比较。",
+        nullText: "两组分布位置相同",
+        nullNote: "它比较的是秩次结构，而不是均值是否完全相等。",
+        describe: "中位数 + IQR",
+        describeNote: "用中位数更贴合偏态数据的中心位置。",
+        tip: "先看秩次思维",
+        tipNote: "先理解排序后比较的逻辑，再记方法名字。"
+      };
+
+      if (aim === "correlation") {
+        result = {
+          method: "Spearman 秩相关",
+          methodNote: "适用于两个变量之间的单调关系分析。",
+          nullText: "两个变量无单调相关",
+          nullNote: "它不要求线性正态关系。",
+          describe: "散点图 + 秩相关系数",
+          describeNote: "最好同时展示散点趋势。",
+          tip: "相关不等于因果",
+          tipNote: "即使是秩相关，也不能直接做因果结论。"
+        };
+      } else if (groups === "2" && paired === "yes") {
+        result = {
+          method: "Wilcoxon 符号秩检验",
+          methodNote: "适用于两配对样本或前后比较。",
+          nullText: "配对差值的中位位置为 0",
+          nullNote: "重点是差值的秩次结构。",
+          describe: "差值中位数 + IQR",
+          describeNote: "先看差值，再做检验。",
+          tip: "先看配对差值",
+          tipNote: "配对设计的分析对象不是两列原始值，而是它们的差。"
+        };
+      } else if (groups === "3plus" && paired === "no") {
+        result = {
+          method: "Kruskal-Wallis 检验",
+          methodNote: "适用于三组及以上独立样本的秩次比较。",
+          nullText: "各组分布位置相同",
+          nullNote: "若显著，仍需进一步做两两比较。",
+          describe: "各组中位数 + IQR",
+          describeNote: "多组比较时，图形展示尤其重要。",
+          tip: "显著后还不够",
+          tipNote: "Kruskal-Wallis 只说明至少有一组不同。"
+        };
+      } else if (groups === "3plus" && paired === "yes") {
+        result = {
+          method: "Friedman 检验",
+          methodNote: "适用于三次及以上重复测量或配对条件下的秩次比较。",
+          nullText: "各时点/条件分布位置相同",
+          nullNote: "与重复测量 ANOVA 的场景相对应。",
+          describe: "各时点中位数 + IQR",
+          describeNote: "建议配合连线图或箱线图。",
+          tip: "重复测量先配对",
+          tipNote: "不要把重复测量样本当成独立组处理。"
+        };
+      } else if (scale === "ordinal") {
+        result.tip = "等级资料优先秩次方法";
+        result.tipNote = "顺序资料即使编码成数字，也不等于连续正态变量。";
+      }
+
+      document.getElementById("methodValue").textContent = result.method;
+      document.getElementById("methodNote").textContent = result.methodNote;
+      document.getElementById("nullValue").textContent = result.nullText;
+      document.getElementById("nullNote").textContent = result.nullNote;
+      document.getElementById("describeValue").textContent = result.describe;
+      document.getElementById("describeNote").textContent = result.describeNote;
+      document.getElementById("tipValue").textContent = result.tip;
+      document.getElementById("tipNote").textContent = result.tipNote;
+    }
+    elements.forEach((el) => el.addEventListener("change", updateGuide));
+    updateGuide();
+  </script>
+</body>
+</html>
